@@ -22,7 +22,7 @@
                     <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-white hover:text-gray-200 text-lg font-bold">
                         {{ __('Estoque') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-white hover:text-gray-200 text-lg font-bold">
+                    <x-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.*')" class="text-white hover:text-gray-200 text-lg font-bold">
                         {{ __('Clientes') }}
                     </x-nav-link>
                 </div>
