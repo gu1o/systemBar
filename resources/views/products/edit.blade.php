@@ -21,8 +21,9 @@
                             name="name"
                             id="name"
                             value="{{ old('name', $product->name) }}"
-                            class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg"
+                            class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400"
                             required
+                            placeholder="Coca Cola 2L"
                         >
                     </div>
 
@@ -32,13 +33,14 @@
                                 Preço de Custo (R$)
                             </label>
                             <input
-                                type="number"
+                                type="text"
                                 step="0.01"
                                 name="cost_price"
                                 id="cost_price"
                                 value="{{ old('cost_price', $product->cost_price) }}"
-                                class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg"
+                                class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400"
                                 required
+                                placeholder="0,00" data-mask="0000000.000" required oninput="brlCurrencyMask(event)"
                             >
                         </div>
 
@@ -47,13 +49,13 @@
                                 Preço de Venda (R$)
                             </label>
                             <input
-                                type="number"
+                                type="text"
                                 step="0.01"
                                 name="sale_price"
                                 id="sale_price"
                                 value="{{ old('sale_price', $product->sale_price) }}"
-                                class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg"
-                                required
+                                class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400"
+                                placeholder="0,00" data-mask="0000000.000" required oninput="brlCurrencyMask(event)"
                             >
                         </div>
                     </div>
@@ -67,23 +69,21 @@
                             name="stock_quantity"
                             id="stock_quantity"
                             value="{{ old('stock_quantity', $product->stock_quantity) }}"
-                            class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg"
+                            class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400"
+                            placeholder="10"
                             required
                         >
                     </div>
 
                     <div class="flex items-center justify-between">
-                        <button
-                            type="submit"
-                            class="bg-[#008080] hover:bg-[#00A0A0] text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-all text-xl"
-                        >
-                            Atualizar Produto
-                        </button>
-
                         <a href="{{ route('products.index') }}"
-                           class="text-gray-600 hover:text-gray-900 font-bold text-lg">
+                           class="text-gray-600 hover:text-red-500 font-bold text-lg transtition-colors duration-300">
                             Cancelar
                         </a>
+
+                        <x-button-submit>
+                            Atualizar Produto
+                        </x-button-submit>
                     </div>
                 </form>
             </div>

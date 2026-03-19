@@ -3,43 +3,54 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sale;
-use App\Models\Product;
-use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SaleController extends Controller
 {
     public function index()
     {
-        $sales = Sale::with(['customer'])->latest()->paginate(10);
+        $sales = auth()->user()->sales()->with(['customer'])->latest()->paginate(10);
+
         return view('sales.index', compact('sales'));
     }
 
     public function create()
     {
-        $products = Product::where('stock_quantity', '>', 0)->get();
-        $customers = Customer::all();
+        $user = auth()->user();
+
+        $products = $user->products()->where('stock_quantity', '>', 0)->get();
+        $customers = $user->customers()->orderBy('name')->get();
+
         return view('sales.create', compact('products', 'customers'));
     }
 
     public function store(Request $request)
     {
+        $userId = $request->user()->id;
+
         $request->validate([
-            'customer_id' => 'required|exists:customers,id',
+            'customer_id' => [
+                'required',
+                Rule::exists('customers', 'id')->where(fn ($query) => $query->where('user_id', $userId)),
+            ],
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.product_id' => [
+                'required',
+                Rule::exists('products', 'id')->where(fn ($query) => $query->where('user_id', $userId)),
+            ],
             'items.*.quantity' => 'required|integer|min:1',
         ]);
 
         $totalAmount = 0;
-        $sale = Sale::create([
+        $sale = $request->user()->sales()->create([
             'customer_id' => $request->customer_id,
             'total_amount' => 0,
             'status' => 'pending',
         ]);
 
         foreach ($request->items as $item) {
-            $product = Product::find($item['product_id']);
+            $product = $request->user()->products()->findOrFail($item['product_id']);
             $subtotal = $product->sale_price * $item['quantity'];
 
             $sale->items()->create([
@@ -60,12 +71,17 @@ class SaleController extends Controller
 
     public function show(Sale $sale)
     {
+        abort_unless($sale->user_id === auth()->id(), 403);
+
         $sale->load(['customer', 'items.product']);
+
         return view('sales.show', compact('sale'));
     }
 
     public function updateStatus(Request $request, Sale $sale)
     {
+        abort_unless($sale->user_id === $request->user()->id, 403);
+
         $request->validate([
             'status' => 'required|in:pending,paid',
         ]);

@@ -11,14 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('customers', function (Blueprint $table) {
-            $table->id();
-            $table->string('user_id', 36)->nullable()->index();
+        Schema::table('sales', function (Blueprint $table) {
+            $table->string('user_id', 36)->nullable()->after('id')->index();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->string('name');
-            $table->string('phone', 20)->nullable();
-            $table->text('notes')->nullable();
-            $table->timestamps();
         });
     }
 
@@ -27,6 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('customers');
+        Schema::table('sales', function (Blueprint $table) {
+            $table->dropForeign(['user_id']);
+            $table->dropColumn('user_id');
+        });
     }
 };

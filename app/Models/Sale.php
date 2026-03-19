@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ScopedToUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,8 +11,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Sale extends Model
 {
     use HasFactory;
+    use ScopedToUser;
 
     protected $fillable = [
+        'user_id',
         'customer_id',
         'total_amount',
         'status',
@@ -20,6 +23,11 @@ class Sale extends Model
     /**
      * Define o relacionamento: uma Venda (Sale) pertence a um Cliente (Customer).
      */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);

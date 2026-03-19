@@ -8,14 +8,32 @@ use Illuminate\Http\Request;
 class ProductController extends Controller
 {
     /**
+     * Converte valor monetário pt-BR (ex.: 1.234,56 ou 25,90) para formato numérico (ponto decimal).
+     */
+    private function normalizeMoneyForValidation(?string $value): ?string
+    {
+        if ($value === null || trim((string) $value) === '') {
+            return null;
+        }
+
+        $v = trim($value);
+        $v = str_replace(['R$', ' ', "\xC2\xA0"], '', $v);
+
+        if (str_contains($v, ',')) {
+            $v = str_replace('.', '', $v);
+            $v = str_replace(',', '.', $v);
+        }
+
+        return $v;
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // Busca todos os produtos do banco de dados
-        $products = Product::latest()->paginate(10); // Pega os últimos adicionados e pagina
+        $products = auth()->user()->products()->latest()->paginate(10);
 
-        // Retorna a view 'products.index' e passa a variável 'products' para ela
         return view('products.index', compact('products'));
     }
 
@@ -33,16 +51,28 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        // Validação dos dados do formulário
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'sale_price' => 'required|numeric|min:0',
-            'cost_price' => 'required|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
+        $request->merge([
+            'sale_price' => $this->normalizeMoneyForValidation($request->input('sale_price')) ?? '',
+            'cost_price' => $this->normalizeMoneyForValidation($request->input('cost_price')),
         ]);
 
-        // Cria o produto no banco de dados
-        Product::create($request->all());
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'sale_price' => 'required|numeric|min:0',
+            'cost_price' => 'nullable|numeric|min:0',
+            'stock_quantity' => 'required|integer|min:0',
+            'description' => 'nullable|string',
+            'stock_alert' => 'nullable|integer|min:0',
+        ]);
+
+        // Coluna cost_price é NOT NULL no banco; formulário de criação pode deixar em branco.
+        if ($validated['cost_price'] === null) {
+            $validated['cost_price'] = 0;
+        }
+
+        unset($validated['user_id']);
+
+        $request->user()->products()->create($validated);
 
         // Redireciona para a lista de produtos com uma mensagem de sucesso
         return redirect()->route('products.index')
@@ -54,8 +84,8 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        // Retorna a view de edição, passando o produto que queremos editar
-        // O Laravel automaticamente encontra o produto pelo ID na URL ({produto})
+        abort_unless($product->user_id === auth()->id(), 403);
+
         return view('products.edit', compact('product'));
     }
 
@@ -64,16 +94,27 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        // Validação dos dados
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'sale_price' => 'required|numeric|min:0',
-            'cost_price' => 'required|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
+        abort_unless($product->user_id === $request->user()->id, 403);
+
+        $request->merge([
+            'sale_price' => $this->normalizeMoneyForValidation($request->input('sale_price')) ?? '',
+            'cost_price' => $this->normalizeMoneyForValidation($request->input('cost_price')),
         ]);
 
-        // Atualiza o produto no banco de dados
-        $product->update($request->all());
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'sale_price' => 'required|numeric|min:0',
+            'cost_price' => 'nullable|numeric|min:0',
+            'stock_quantity' => 'required|integer|min:0',
+            'description' => 'nullable|string',
+            'stock_alert' => 'nullable|integer|min:0',
+        ]);
+
+        if ($validated['cost_price'] === null) {
+            $validated['cost_price'] = 0;
+        }
+
+        $product->update($validated);
 
         // Redireciona de volta para a lista com mensagem de sucesso
         return redirect()->route('products.index')
@@ -83,9 +124,10 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy(Request $request, Product $product)
     {
-        // Deleta o produto do banco de dados
+        abort_unless($product->user_id === $request->user()->id, 403);
+
         $product->delete();
 
         // Redireciona de volta para a lista com mensagem de sucesso
