@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Incluímos os arquivos de blade e js */
+@source "../**/*.blade.php";
+@source "../**/*.js";
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+@source "../../storage/framework/views/*.php";
+
+/* Incluímos o plugin daisyui */
+@plugin "daisyui";
+
+@theme {
+    --breakpoint-xs: 22.5rem;
+    --breakpoint-sm: 40rem;
+    --breakpoint-md: 64rem;
+    --breakpoint-lg: 80rem;
+    --breakpoint-xl: 90rem;
+    --breakpoint-2xl: 96rem;
+}
