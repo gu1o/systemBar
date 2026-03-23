@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
-            $table->string('user_id', 36)->nullable()->index();
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('name');
             $table->string('phone', 20)->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
+            $table->string('user_id', 36)->nullable()->index();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

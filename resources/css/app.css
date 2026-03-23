@@ -28,7 +28,7 @@
 }
 
 @layer components {
-    .btn {
+    .btn-brand {
         @apply bg-[#0047AB] hover:bg-[#0056D2] text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all;
     }
 }

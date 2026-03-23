@@ -99,6 +99,18 @@ return [
 
     'key' => env('APP_KEY'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Blind index key (email lookup)
+    |--------------------------------------------------------------------------
+    |
+    | HMAC key used for the email_hash column. If empty, APP_KEY is used.
+    | Set a dedicated value in production if you rotate APP_KEY often.
+    |
+    */
+
+    'blind_index_key' => env('BLIND_INDEX_KEY', ''),
+
     'previous_keys' => [
         ...array_filter(
             explode(',', (string) env('APP_PREVIOUS_KEYS', ''))

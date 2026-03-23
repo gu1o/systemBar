@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Models\Product;
 use App\Models\Customer;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -19,7 +18,7 @@ class DatabaseSeeder extends Seeder
         $user = User::factory()->create([
             'name' => 'Administrador',
             'email' => 'admin@admin.com',
-            'password' => Hash::make('102030'),
+            'password' => '102030',
         ]);
 
         // Criar alguns clientes vinculados ao usuário

@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class ProfileUpdateRequest extends FormRequest
 {
@@ -23,7 +22,12 @@ class ProfileUpdateRequest extends FormRequest
                 'lowercase',
                 'email',
                 'max:255',
-                Rule::unique(User::class)->ignore($this->user()->id),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    $hash = User::hashEmail($value);
+                    if (User::where('email_hash', $hash)->where('id', '!=', $this->user()->id)->exists()) {
+                        $fail(__('validation.unique', ['attribute' => __('validation.attributes.email')]));
+                    }
+                },
             ],
         ];
     }

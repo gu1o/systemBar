@@ -65,11 +65,6 @@ class ProductController extends Controller
             'stock_alert' => 'nullable|integer|min:0',
         ]);
 
-        // Coluna cost_price é NOT NULL no banco; formulário de criação pode deixar em branco.
-        if ($validated['cost_price'] === null) {
-            $validated['cost_price'] = 0;
-        }
-
         unset($validated['user_id']);
 
         $request->user()->products()->create($validated);
@@ -109,10 +104,6 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'stock_alert' => 'nullable|integer|min:0',
         ]);
-
-        if ($validated['cost_price'] === null) {
-            $validated['cost_price'] = 0;
-        }
 
         $product->update($validated);
 

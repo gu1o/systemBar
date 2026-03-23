@@ -30,7 +30,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
                             <label for="cost_price" class="block text-gray-700 text-xl font-bold mb-2">
-                                Preço de Custo (R$)
+                                Preço de Custo (R$) <span class="text-base font-normal text-gray-500">(opcional)</span>
                             </label>
                             <input
                                 type="text"
@@ -39,8 +39,7 @@
                                 id="cost_price"
                                 value="{{ old('cost_price', $product->cost_price) }}"
                                 class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400"
-                                required
-                                placeholder="0,00" data-mask="0000000.000" required oninput="brlCurrencyMask(event)"
+                                placeholder="0,00" data-mask="0000000.000" oninput="brlCurrencyMask(event)"
                             >
                         </div>
 

@@ -1,116 +1,164 @@
-<nav x-data="{ open: false }" class="bg-[#0047AB] border-b border-white/10">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-28">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center gap-4">
-                    <img class="w-20 h-auto rounded-full" src="{{ asset('assets/imgs/logo.png') }}" alt="">
-                    <a href="{{ route('dashboard') }}" class="text-white font-bold text-2xl tracking-wider">
-                        SYSTEM BAR
-                    </a>
-                </div>
+@php
+    $navDesktopBase = 'rounded-md px-3 py-2 text-sm font-medium transition-colors';
+    $navDesktopActive = 'bg-[#002366]/80 text-white';
+    $navDesktopInactive = 'text-white/80 hover:bg-white/10 hover:text-white';
+    $navMobileBase = 'block rounded-md px-3 py-2 text-base font-medium transition-colors';
+    $navMobileActive = 'bg-[#002366]/80 text-white';
+    $navMobileInactive = 'text-white/80 hover:bg-white/10 hover:text-white';
+@endphp
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white hover:text-gray-200 text-lg font-bold">
-                        {{ __('Início') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('sales.index')" :active="request()->routeIs('sales.*')" class="text-white hover:text-gray-200 text-lg font-bold">
-                        {{ __('Vendas') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-white hover:text-gray-200 text-lg font-bold">
-                        {{ __('Estoque') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.*')" class="text-white hover:text-gray-200 text-lg font-bold">
-                        {{ __('Clientes') }}
-                    </x-nav-link>
-                </div>
-            </div>
-
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-4 py-2 border border-white/20 text-lg leading-4 font-bold rounded-md text-white bg-[#002366] hover:bg-[#003399] focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
-
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')" class="text-lg">
-                            {{ __('Minha Conta') }}
-                        </x-dropdown-link>
-
-                        <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-
-                            <x-dropdown-link :href="route('logout')" class="text-lg text-red-600"
-                                    onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                                {{ __('Sair do Sistema') }}
-                            </x-dropdown-link>
-                        </form>
-                    </x-slot>
-                </x-dropdown>
-            </div>
-
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-[#003399] focus:outline-none transition duration-150 ease-in-out">
-                    <svg class="h-8 w-8" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+<nav class="relative bg-[#0047AB]/50 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-white/10">
+    <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+        <div class="relative flex h-16 items-center justify-between sm:h-20">
+            <div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
+                <!-- Mobile menu button -->
+                <button
+                    type="button"
+                    command="--toggle"
+                    commandfor="mobile-menu"
+                    class="relative inline-flex items-center justify-center rounded-md p-2 text-white/70 hover:bg-white/5 hover:text-white focus:outline-2 focus:-outline-offset-1 focus:outline-sky-300"
+                >
+                    <span class="absolute -inset-0.5"></span>
+                    <span class="sr-only">{{ __('Abrir menu principal') }}</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 in-aria-expanded:hidden">
+                        <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 not-in-aria-expanded:hidden">
+                        <path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </button>
             </div>
+
+            <div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+                <div class="flex shrink-0 items-center gap-3">
+                    <img src="{{ asset('assets/imgs/logo.png') }}" alt="{{ config('app.name', 'System Bar') }}" class="h-9 w-9 rounded-full object-cover sm:h-11 sm:w-11" />
+                    <a href="{{ route('dashboard') }}" class="hidden font-bold tracking-wider text-white sm:inline text-lg">
+                        SYSTEM BAR
+                    </a>
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:items-center">
+                    <div class="flex space-x-4">
+                        <a
+                            href="{{ route('dashboard') }}"
+                            @class([$navDesktopBase, request()->routeIs('dashboard') ? $navDesktopActive : $navDesktopInactive])
+                            @if(request()->routeIs('dashboard')) aria-current="page" @endif
+                        >
+                            {{ __('Início') }}
+                        </a>
+                        <a
+                            href="{{ route('sales.index') }}"
+                            @class([$navDesktopBase, request()->routeIs('sales.*') ? $navDesktopActive : $navDesktopInactive])
+                            @if(request()->routeIs('sales.*')) aria-current="page" @endif
+                        >
+                            {{ __('Vendas') }}
+                        </a>
+                        <a
+                            href="{{ route('products.index') }}"
+                            @class([$navDesktopBase, request()->routeIs('products.*') ? $navDesktopActive : $navDesktopInactive])
+                            @if(request()->routeIs('products.*')) aria-current="page" @endif
+                        >
+                            {{ __('Estoque') }}
+                        </a>
+                        <a
+                            href="{{ route('customers.index') }}"
+                            @class([$navDesktopBase, request()->routeIs('customers.*') ? $navDesktopActive : $navDesktopInactive])
+                            @if(request()->routeIs('customers.*')) aria-current="page" @endif
+                        >
+                            {{ __('Clientes') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+                <!-- Profile dropdown -->
+                <el-dropdown class="relative ml-3">
+                    <button
+                        type="button"
+                        class="relative flex max-w-[12rem] items-center gap-2 rounded-full cursor-pointer border pr-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 sm:max-w-xs"
+                    >
+                        <span class="absolute -inset-1.5"></span>
+                        <span class="sr-only">{{ __('Abrir menu do usuário') }}</span>
+                        <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#002366] text-sm font-semibold text-white outline -outline-offset-1 outline-white/10">
+                            {{ mb_strtoupper(mb_substr(Auth::user()->name, 0, 1)) }}
+                        </span>
+                        <span class="hidden truncate text-sm font-semibold text-white sm:inline">
+                            {{ Auth::user()->name }}
+                        </span>
+                    </button>
+
+                    <el-menu
+                        anchor="bottom end"
+                        popover
+                        class="w-56 origin-top-right rounded-md bg-[#002366] py-1 outline -outline-offset-1 outline-white/10 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+                    >
+                        <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-white/90 focus:bg-white/5 focus:outline-hidden">
+                            {{ __('Minha Conta') }}
+                        </a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button
+                                type="submit"
+                                class="block w-full px-4 py-2 text-left text-sm text-red-400 focus:bg-white/5 focus:outline-hidden"
+                            >
+                                {{ __('Sair do Sistema') }}
+                            </button>
+                        </form>
+                    </el-menu>
+                </el-dropdown>
+            </div>
         </div>
     </div>
 
-    <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden bg-[#002366]">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white text-xl">
+    <el-disclosure id="mobile-menu" hidden class="block sm:hidden border-t border-white/10 bg-[#002366]/95">
+        <div class="space-y-1 px-2 pt-2 pb-3">
+            <a
+                href="{{ route('dashboard') }}"
+                @class([$navMobileBase, request()->routeIs('dashboard') ? $navMobileActive : $navMobileInactive])
+                @if(request()->routeIs('dashboard')) aria-current="page" @endif
+            >
                 {{ __('Início') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('sales.index')" :active="request()->routeIs('sales.*')" class="text-white text-xl">
+            </a>
+            <a
+                href="{{ route('sales.index') }}"
+                @class([$navMobileBase, request()->routeIs('sales.*') ? $navMobileActive : $navMobileInactive])
+                @if(request()->routeIs('sales.*')) aria-current="page" @endif
+            >
                 {{ __('Vendas') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-white text-xl">
+            </a>
+            <a
+                href="{{ route('products.index') }}"
+                @class([$navMobileBase, request()->routeIs('products.*') ? $navMobileActive : $navMobileInactive])
+                @if(request()->routeIs('products.*')) aria-current="page" @endif
+            >
                 {{ __('Estoque') }}
-            </x-responsive-nav-link>
+            </a>
+            <a
+                href="{{ route('customers.index') }}"
+                @class([$navMobileBase, request()->routeIs('customers.*') ? $navMobileActive : $navMobileInactive])
+                @if(request()->routeIs('customers.*')) aria-current="page" @endif
+            >
+                {{ __('Clientes') }}
+            </a>
         </div>
 
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-white/10">
-            <div class="px-4">
-                <div class="font-bold text-xl text-white">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-lg text-gray-300">{{ Auth::user()->email }}</div>
-            </div>
-
+        <div class="border-t border-white/10 px-4 py-4">
+            <div class="font-semibold text-white">{{ Auth::user()->name }}</div>
+            <div class="text-sm text-white/60">{{ Auth::user()->email }}</div>
             <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')" class="text-white text-lg">
+                <a href="{{ route('profile.edit') }}" class="block rounded-md px-3 py-2 text-base font-medium text-white/90 hover:bg-white/10">
                     {{ __('Minha Conta') }}
-                </x-responsive-nav-link>
-
-                <!-- Authentication -->
+                </a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
-                    <x-responsive-nav-link :href="route('logout')" class="text-red-400 text-lg"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
+                    <button
+                        type="submit"
+                        class="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-red-400 hover:bg-white/10"
+                    >
                         {{ __('Sair do Sistema') }}
-                    </x-responsive-nav-link>
+                    </button>
                 </form>
             </div>
         </div>
-    </div>
+    </el-disclosure>
 </nav>

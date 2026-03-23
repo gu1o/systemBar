@@ -24,18 +24,18 @@
             
             <a href="{{ route('login') }}" title="Voltar para o Login"
                 class="flex items-center justify-center gap-2 self-stretch btn btn-soft group">
-                <span class="text-center text-white/80 group-hover:text-white transition-all duration-300 text-md">
+                <span class="text-center text-gray-600 group-hover:text-[#0047AB] transition-all duration-300 text-md">
                     Voltar para o Login
                 </span>
 
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                     fill="none">
                     <path d="M15 11.5H3M3 11.5L7.5 7M3 11.5L7.5 16"
-                        class="stroke-white/80 group-hover:stroke-white transition-all duration-300" stroke-width="1.5"
+                        class="stroke-gray-600 group-hover:stroke-[#0047AB] transition-all duration-300" stroke-width="1.5"
                         stroke-linecap="round" stroke-linejoin="round" />
                     <path
                         d="M10 16V19C10 19.5523 10.4477 20 11 20H20C20.5523 20 21 19.5523 21 19V4C21 3.44772 20.5523 3 20 3H11C10.4477 3 10 3.44772 10 4V7"
-                        class="stroke-white/80 group-hover:stroke-white transition-all duration-300" stroke-width="2"
+                        class="stroke-gray-600 group-hover:stroke-[#0047AB] transition-all duration-300" stroke-width="2"
                         stroke-linecap="round" />
                 </svg>
             </a>

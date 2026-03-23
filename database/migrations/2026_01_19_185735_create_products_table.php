@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('name');
             $table->text('description')->nullable();
-            $table->decimal('cost_price', 10, 2);
+            $table->decimal('cost_price', 10, 2)->nullable();
             $table->decimal('sale_price', 10, 2);
             $table->integer('stock_quantity')->default(0);
             $table->integer('stock_alert')->default(5);
