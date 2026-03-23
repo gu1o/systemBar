@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /* Incluímos os arquivos de blade e js */
 @source "../**/*.blade.php";
@@ -8,14 +6,36 @@
 @source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
 @source "../../storage/framework/views/*.php";
 
-/* Incluímos o plugin daisyui */
+/* Plugins (ordem: forms antes de temas/componentes de UI quando necessário) */
+@plugin "@tailwindcss/forms";
 @plugin "daisyui";
 
 @theme {
+    --font-sans: "Noto Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+        "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --breakpoint-xs: 22.5rem;
     --breakpoint-sm: 40rem;
     --breakpoint-md: 64rem;
     --breakpoint-lg: 80rem;
     --breakpoint-xl: 90rem;
     --breakpoint-2xl: 96rem;
+}
+
+@layer base {
+    html {
+        font-family: var(--font-sans);
+    }
+}
+
+@layer components {
+    .btn {
+        @apply bg-[#0047AB] hover:bg-[#0056D2] text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all;
+    }
+}
+
+@layer utilities {
+    .text-2xl {
+        font-size: 1rem;
+        line-height: 1.25rem;
+    }
 }

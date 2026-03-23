@@ -6,10 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>System Bar - Gestão Simples</title>
     <link rel="icon" href="{{ asset('assets/favicon.png') }}" type="image/png">
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=noto-sans:400,500,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="antialiased bg-[#002366] flex items-center justify-center min-h-screen">
+<body class="font-sans antialiased bg-[#002366] flex items-center justify-center min-h-screen">
     <div class="flex flex-col gap-10 py-12 px-8 sm:px-14 md:py-0 md:px-8 lg:p-0 max-w-4xl w-full text-center">
         <h1 class="text-5xl self-stretch font-extrabold text-white sm:text-6xl sm:tracking-tight">
             SYSTEM BAR
@@ -34,7 +36,7 @@
 
                     @if (Route::has('register'))
                         <a href="{{ route('register') }}"
-                            class="bg-white hover:bg-gray-100 text-[#002366] font-bold py-5 px-12 rounded-xl shadow-2xl transition-all text-2xl sm:w-full md:w-[18.3rem] lg:w-[18.5rem]">
+                            class="bg-white hover:bg-gray-100 text-[#002366] font-bold py-5 px-12 rounded-xl shadow-2xl transition-all text-2xl sm:w-full md:w-[18.3rem] lg:w-[15.5rem]">
                             Criar Conta
                         </a>
                     @endif

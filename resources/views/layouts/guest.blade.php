@@ -10,20 +10,20 @@
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=noto-sans:400,500,600,700&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-[#002366]">
+        <div class="min-h-screen flex flex-col justify-center items-center px-6 sm:pt-0 bg-[#002366]">
             <div class="mb-8">
                 <a href="/" class="text-white font-bold text-4xl tracking-widest">
                     SYSTEM BAR
                 </a>
             </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-8 py-10 bg-white shadow-2xl overflow-hidden sm:rounded-2xl">
+            <div class="w-full sm:max-w-md px-8 py-10 bg-white shadow-2xl overflow-hidden rounded-sm sm:rounded-2xl">
                 {{ $slot }}
             </div>
         </div>
