@@ -5,14 +5,14 @@
                 {{ __('Estoque de Produtos') }}
             </h2>
             <a href="{{ route('products.create') }}"
-                class="bg-[#008080] hover:bg-[#00A0A0] text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all">
+                class="hidden md:flex bg-[#008080] hover:bg-[#00A0A0] text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all">
                 + Novo Produto
             </a>
         </div>
     </x-slot>
 
     <div class="py-12 bg-[#002366] min-h-screen">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 relative">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                 @if (session('success'))
                     <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
@@ -77,7 +77,8 @@
                                             class="flex items-center">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="cursor-pointer text-red-600 hover:text-red-900 text-lg"
+                                            <button type="submit"
+                                                class="cursor-pointer text-red-600 hover:text-red-900 text-lg"
                                                 onclick="return confirm('Tem certeza que deseja excluir este produto?')">
                                                 <svg class="stroke-red-600 hover:stroke-red-900"
                                                     xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -99,6 +100,14 @@
                     {{ $products->links() }}
                 </div>
             </div>
+            <a href="{{ route('products.create') }}"
+                class="flex absolute bottom-0 right-4 bg-[#008080] hover:bg-[#00A0A0] text-white font-bold p-3 rounded-full shadow-md transition-all z-10 md:hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                    fill="none">
+                    <path d="M12 5V19M5 12H19" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </a>
         </div>
     </div>
 </x-app-layout>

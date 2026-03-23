@@ -75,7 +75,7 @@
                 <el-dropdown class="relative ml-3">
                     <button
                         type="button"
-                        class="relative flex max-w-[12rem] items-center gap-2 rounded-full cursor-pointer border pr-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 sm:max-w-xs"
+                        class="relative flex max-w-[12rem] items-center gap-2 rounded-full cursor-pointer border md:pr-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 sm:max-w-xs"
                     >
                         <span class="absolute -inset-1.5"></span>
                         <span class="sr-only">{{ __('Abrir menu do usuário') }}</span>
@@ -142,23 +142,5 @@
             </a>
         </div>
 
-        <div class="border-t border-white/10 px-4 py-4">
-            <div class="font-semibold text-white">{{ Auth::user()->name }}</div>
-            <div class="text-sm text-white/60">{{ Auth::user()->email }}</div>
-            <div class="mt-3 space-y-1">
-                <a href="{{ route('profile.edit') }}" class="block rounded-md px-3 py-2 text-base font-medium text-white/90 hover:bg-white/10">
-                    {{ __('Minha Conta') }}
-                </a>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button
-                        type="submit"
-                        class="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-red-400 hover:bg-white/10"
-                    >
-                        {{ __('Sair do Sistema') }}
-                    </button>
-                </form>
-            </div>
-        </div>
     </el-disclosure>
 </nav>
