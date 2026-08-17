@@ -12,6 +12,8 @@
                     @csrf
                     @method('PUT')
 
+                    <x-form-errors />
+
                     <div class="mb-6">
                         <label for="name" class="block text-gray-700 text-xl font-bold mb-2">
                             Nome do Produto
@@ -21,7 +23,8 @@
                             name="name"
                             id="name"
                             value="{{ old('name', $product->name) }}"
-                            class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400"
+                            class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400 @error('name') border-2 border-red-600 @enderror"
+                            @error('name') aria-invalid="true" @enderror
                             required
                             placeholder="Coca Cola 2L"
                         >
@@ -53,7 +56,8 @@
                                 name="sale_price"
                                 id="sale_price"
                                 value="{{ old('sale_price', $product->sale_price) }}"
-                                class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400"
+                                class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400 @error('sale_price') border-2 border-red-600 @enderror"
+                                @error('sale_price') aria-invalid="true" @enderror
                                 placeholder="0,00" data-mask="0000000.000" required oninput="brlCurrencyMask(event)"
                             >
                         </div>
@@ -68,8 +72,10 @@
                             name="stock_quantity"
                             id="stock_quantity"
                             value="{{ old('stock_quantity', $product->stock_quantity) }}"
-                            class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400"
+                            class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400 @error('stock_quantity') border-2 border-red-600 @enderror"
+                            @error('stock_quantity') aria-invalid="true" @enderror
                             placeholder="10"
+                            min="0"
                             required
                         >
                     </div>

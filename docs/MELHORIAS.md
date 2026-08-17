@@ -24,13 +24,13 @@ Antes de qualquer item, o critério de decisão que deve valer em todas as escol
 
 | # | Ação | Esforço | Impacto |
 |---|---|---|---|
-| 1 | **Remover o override de `.text-2xl` em `resources/css/app.css:36-41`** — ele reduz para 16px justamente os textos grandes feitos para este público (§A1) | 1 linha | Altíssimo |
-| 2 | **Configurar locale pt-BR + criar `lang/pt_BR/`** — hoje toda validação sai em inglês, e no e-mail duplicado aparece a string crua `validation.unique` na tela (§B7) | ~1h | Altíssimo |
-| 3 | **Corrigir o subtotal dos itens de venda** — todo comprovante impresso mostra `R$ 0,00` em cada linha (§B1) | 1 linha | Alto |
-| 4 | **Mostrar os erros de validação nos 4 formulários que não mostram** — hoje o usuário salva, falha, e a tela volta igual sem explicar nada (§B10) | ~1h | Alto |
-| 5 | **Trocar os ícones-only das tabelas por botões com texto** "Editar" / "Excluir" com 44px (§A2, §A3) | ~2h | Alto |
+| 1 | ~~**Remover o override de `.text-2xl` em `resources/css/app.css:36-41`**~~ **✅ FEITO** — ele reduzia para 16px justamente os textos grandes feitos para este público (§A1) | 1 linha | Altíssimo |
+| 2 | ~~**Configurar locale pt-BR + criar `lang/pt_BR/`**~~ **✅ FEITO** — validação saía em inglês, e no e-mail duplicado aparecia a string crua `validation.unique` na tela (§B7) | ~1h | Altíssimo |
+| 3 | ~~**Corrigir o subtotal dos itens de venda**~~ **✅ FEITO** — todo comprovante impresso mostrava `R$ 0,00` em cada linha (§B1) | 1 linha | Alto |
+| 4 | ~~**Mostrar os erros de validação nos 4 formulários que não mostram**~~ **✅ FEITO** — o usuário salvava, falhava, e a tela voltava igual sem explicar nada (§B10) | ~1h | Alto |
+| 5 | ~~**Trocar os ícones-only das tabelas por botões com texto**~~ **✅ FEITO** — "Editar" / "Excluir" com 44px (§A2, §A3) | ~2h | Alto |
 
-Os itens 1, 2 e 4 sozinhos mudam a percepção do app inteiro com diff pequeno e risco baixo.
+**As 5 ações do sumário estão aplicadas.** O que sobrou de mais urgente, em ordem: `B2` (estoque negativo), `B5` (transação na venda), `B6` (máscara de moeda quebrada na edição de produto), `B3`/`B4` (exclusões que corrompem histórico).
 
 ---
 
@@ -38,7 +38,7 @@ Os itens 1, 2 e 4 sozinhos mudam a percepção do app inteiro com diff pequeno e
 
 Prioridade máxima. São defeitos, não preferências.
 
-### B1 — Todo item de venda mostra `R$ 0,00` no comprovante
+### B1 — Todo item de venda mostra `R$ 0,00` no comprovante ✅ FEITO
 
 **Onde:** `app/Http/Controllers/SaleController.php:60` · `resources/views/sales/show.blade.php:48` · `database/migrations/2026_01_19_185750_create_sale_items_table.php`
 
@@ -54,9 +54,17 @@ Recomendação: a simples. O valor é derivável e coluna derivada é coluna que
 
 **Aceite:** abrir uma venda com 2 itens de quantidades diferentes → cada linha mostra valor próprio, e a soma das linhas bate com o Total Geral.
 
+**O que foi feito** (variação da saída simples, sem migration):
+
+- `app/Models/SaleItem.php` — accessor `subtotal()` (`Attribute::get`) devolvendo `quantity * unit_price`. Escolhido em vez de mudar a view porque `$item->subtotal` passa a **existir de verdade** no modelo: a view do comprovante continua igual, e qualquer relatório ou recibo futuro que leia `subtotal` já lê o valor certo em vez de reinventar a multiplicação.
+- `app/Http/Controllers/SaleController.php` — removida a chave `'subtotal' => $subtotal` do `items()->create()`. Era código morto que aparentava gravar e não gravava; a variável local `$subtotal` segue em uso para somar o `total_amount`.
+- `tests/Feature/SaleReceiptTest.php` — registra uma venda com 2 itens de quantidades diferentes e confere que o comprovante mostra `R$ 31,50`, `R$ 14,50` e total `R$ 46,00`. É o aceite acima, automatizado. Sem factories (ainda não existem, §T1): os registros são criados direto pelas relações do usuário.
+
+Nenhuma coluna nova, nenhuma migration. Efeito colateral resolvido: o `number_format(null, ...)` que gerava deprecation no PHP 8.1+ a cada linha do comprovante.
+
 ---
 
-### B2 — Estoque fica negativo
+### B2 — Estoque fica negativo *(B2b feito; validação de estoque pendente)*
 
 **Onde:** `app/Http/Controllers/SaleController.php:42,63`
 
@@ -66,7 +74,12 @@ A validação é só `'items.*.quantity' => 'required|integer|min:1'`. Não exis
 
 **Como resolver:** validar item a item contra o estoque disponível, com mensagem que **nomeia o produto e diz quanto tem**: *"Você tem apenas 3 unidades de Coca Cola 2L em estoque."* Uma mensagem genérica de "quantidade inválida" não ajuda ninguém aqui. Somar quantidades quando o mesmo produto aparece em duas linhas (ver B2b).
 
-**B2b — linhas duplicadas do mesmo produto** não são consolidadas: geram dois `sale_items` e dois `decrement()`. A validação de estoque tem que considerar o total por produto, não por linha.
+**B2b — linhas duplicadas do mesmo produto** ✅ **FEITO** — antes geravam dois `sale_items` e dois `decrement()`; o mesmo produto aparecia duas vezes no comprovante entregue ao cliente.
+
+- `app/Http/Controllers/SaleController.php` — as linhas do formulário passam por `groupBy('product_id')` + soma das quantidades antes de gravar. Um item por produto, uma única baixa de estoque. O loop agora itera sobre as quantidades consolidadas, não sobre `$request->items` cru.
+- `tests/Feature/SaleReceiptTest.php` — venda com o mesmo produto em 2 linhas (3 + 2) → 1 item de quantidade 5, total `R$ 52,50`, estoque caindo 5 (não 3 nem 2 duas vezes).
+
+Isso também é a base do que falta do B2: a validação de estoque, quando entrar, precisa olhar essa quantidade consolidada — validar linha a linha continuaria deixando passar 3 + 3 num produto com 5 em estoque.
 
 **Aceite:** tentar vender mais que o estoque → erro claro nomeando o produto, nenhuma venda criada, estoque intacto.
 
@@ -133,7 +146,7 @@ Agrava: `products/edit.blade.php:37,52` têm `step="0.01"` em `type="text"`, atr
 
 ---
 
-### B7 — Mensagens de validação em inglês, e uma delas sai como código na tela
+### B7 — Mensagens de validação em inglês, e uma delas sai como código na tela ✅ FEITO
 
 **Onde:** `config/app.php:81-85` · **não existe diretório `lang/`** no projeto · `app/Http/Controllers/Auth/RegisteredUserController.php:41` · `app/Http/Requests/ProfileUpdateRequest.php:28`
 
@@ -149,6 +162,19 @@ Agrava: `products/edit.blade.php:37,52` têm `step="0.01"` em `type="text"`, atr
 **Como resolver:** `APP_LOCALE=pt_BR` e `APP_FALLBACK_LOCALE=pt_BR` no `.env` e no `.env.example`; `faker_locale` para `pt_BR`; criar `lang/pt_BR/validation.php`, `auth.php`, `passwords.php`, `pagination.php` (o pacote `laravel-lang/lang` resolve isso de uma vez). Traduzir também os `attributes` do validation para os campos aparecerem como "Nome", "Preço de Venda" e não "name", "sale_price".
 
 **Aceite:** enviar o formulário de produto vazio → erros em português nomeando os campos em português. Cadastrar com e-mail repetido → mensagem em português, não `validation.unique`.
+
+**O que foi feito:**
+- `.env` e `.env.example`: `APP_LOCALE`, `APP_FALLBACK_LOCALE` e `APP_FAKER_LOCALE` para `pt_BR`.
+- `config/app.php:81-85`: os *defaults* do `env()` também passaram para `pt_BR`, para um deploy sem essas variáveis definidas não voltar para inglês.
+- Criado `lang/pt_BR/` com `validation.php`, `auth.php`, `passwords.php` e `pagination.php`. **`validation.php` está completo** — cobre todas as chaves da versão do framework, porque chave ausente volta a aparecer crua na tela (era exatamente o sintoma deste bug).
+- As regras que este sistema usa (`required`, `numeric`, `integer`, `min`/`max`, `email`, `unique`, `confirmed`, `current_password`, `exists`, `in`) foram escritas em linguagem direta — `required` é *"Preencha o campo :attribute."*, não *"O campo :attribute é obrigatório."*. As regras que o sistema não usa seguem tradução literal.
+- `validation.attributes` mapeia as colunas para o nome que aparece no formulário: `sale_price` → "preço de venda", `stock_quantity` → "quantidade em estoque", `customer_id` → "cliente".
+- `validation.custom` para os casos onde a mensagem genérica confundiria: venda sem cliente → *"Escolha um cliente para esta venda."*; venda sem itens → *"Adicione pelo menos um produto à venda."*; senha e confirmação diferentes → *"A senha e a confirmação da senha não são iguais."*
+- Sobras em inglês nas views traduzidas: `auth/verify-email.blade.php` (4), `auth/confirm-password.blade.php` (3), `profile/partials/delete-user-form.blade.php` (2), `update-profile-information-form.blade.php` (1). E os rótulos `__('Email')` → `__('E-mail')` em 4 telas, para casar com o nome do campo nas mensagens de erro.
+- A paginação passou a sair em português sem publicar view — a view padrão do Laravel já usa `__('pagination.previous')`.
+- **Teste:** `tests/Feature/LocalizationTest.php` — 4 casos, incluindo o do `validation.unique` cru, que era o bug visível. Suíte completa: 29 passando.
+
+**Não foi feito (fora do escopo do B7):** o `verify-email.blade.php` foi traduzido, mas continua **inalcançável** — a verificação de e-mail está desativada (ver §T6). Traduzir não ativou o fluxo.
 
 ---
 
@@ -182,7 +208,7 @@ Nada linka para elas hoje, então é latente. Mas o corolário é uma lacuna fun
 
 ---
 
-### B10 — Erros de validação invisíveis em 4 dos 5 formulários
+### B10 — Erros de validação invisíveis em 4 dos 5 formulários ✅ FEITO
 
 **Onde:** o bloco `@if ($errors->any())` existe **só** em `resources/views/products/create.blade.php:38-47`. Não existe em `products/edit`, `customers/create`, `customers/edit`, `sales/create`.
 
@@ -196,13 +222,24 @@ Também não há erro por campo (`aria-invalid`, `aria-describedby`) em nenhuma 
 
 **Aceite:** enviar cada um dos 5 formulários com erro → mensagem visível em português **e** os dados digitados preservados.
 
+**O que foi feito** ✅
+
+- `resources/views/components/form-errors.blade.php` (novo) — resumo dos erros no topo do formulário, borda vermelha de 2px, `role="alert"` + `aria-live="assertive"` para leitor de tela anunciar sem o usuário ter que procurar. Título no singular ou plural conforme a quantidade de erros.
+- Aplicado nos **5** formulários: `products/create` (substituindo o bloco copiado que existia só ali), `products/edit`, `customers/create`, `customers/edit`, `sales/create`.
+- `customers/create` — `old()` em nome, telefone e observações. Era o pior caso: o usuário perdia tudo que havia digitado.
+- **Marcação por campo:** `@error(...)` põe borda vermelha de 2px e `aria-invalid="true"` no campo com problema, nos dois formulários de produto e nos dois de cliente, mais o `<select>` de cliente em `sales/create`. Não é só lista no topo.
+- Os `<label>` de `customers/*` ganharam `for` (e os campos, `id`) — sem isso a marcação por campo não tem a quem se associar, e o rótulo não era clicável.
+- `tests/Feature/FormErrorsTest.php` — salva cliente sem nome e confere que a mensagem aparece **e** que telefone e observações digitados continuam na tela; salva produto sem campos e confere o título no plural.
+
+Ficou de fora, é `A7`: `session('error')` continua sem ser renderizado em lugar nenhum.
+
 ---
 
 # 2. Acessibilidade e UX para 50+
 
 O que já está certo e deve ser preservado: tiles grandes de destino único no dashboard, inputs `py-3 text-lg`, labels `text-xl font-bold` nos CRUDs, `aria-current="page"` correto na navegação, `sr-only` nos botões de ícone do menu, `x-modal` acessível com foco preso e ESC.
 
-### A1 — Tipografia: um override anula todo o resto
+### A1 — Tipografia: um override anula todo o resto ✅ FEITO
 
 **O problema central de todo este documento.**
 
@@ -239,9 +276,22 @@ Efeito colateral de contraste: o tile "Configurações" usa texto branco sobre `
 
 **Aceite:** medir com o inspetor — nenhum texto do app abaixo de 16px; rótulos dos tiles em 24px.
 
+**O que foi feito** ✅
+
+- `resources/css/app.css` — bloco `@layer utilities` **apagado**. Base tipográfica movida para o lugar certo: `@layer base { html { font-size: 112.5% } }` (18px). Como todo o Tailwind é em `rem`, texto e espaçamento escalam juntos.
+- O `letter-spacing` que vivia no `<style>` da página do dashboard virou regra de `body` no `app.css` — a intenção era boa, o escopo estava errado. O `<style>` foi removido de `dashboard.blade.php`.
+- **`text-xs` não existe mais no app.** Eram os cabeçalhos das 4 tabelas (`products/index`, `sales/index`, `customers/index`, `sales/show`) e as 3 dicas de senha (`register`, `reset-password`, `update-password-form`).
+- Cabeçalhos de tabela: `text-xs uppercase tracking-wider text-gray-500` → `text-base font-semibold text-gray-700`. Os três piores fatores saíram de uma vez.
+- Pills de status (`products/index`, `sales/show`) subiram de `text-sm px-3 py-1` para `text-base px-4 py-2`, e de `text-*-800` para `text-*-900`.
+- Componentes Breeze, os 4 arquivos que consertam auth e perfil de uma vez: `primary`/`secondary`/`danger-button` saíram de `px-4 py-2 text-xs uppercase tracking-widest` para `min-h-11 px-6 py-3 text-base` sem caixa alta; `input-label` de `text-sm` para `text-lg`; `input-error` de `text-sm text-red-600` para `text-base font-medium text-red-700`.
+
+Verificado no CSS que o Vite serve de fato — `.text-2xl` voltou a resolver pelo token do Tailwind (`var(--text-2xl)`, 1,5rem = **27px** na base de 18px) em vez do `1rem` forçado, e `html { font-size: 112.5% }` está presente.
+
+**Pendência honesta:** `text-sm` agora calcula **15,75px** — 0,25px abaixo do piso de 16px que este documento estabelece. Ainda aparece em textos auxiliares de auth e perfil. Duas saídas: subir a base para 116% (16px vira 18,56px e `text-sm` passa a 16,24px), ou varrer os `text-sm` restantes para `text-base`. Não decidi por você.
+
 ---
 
-### A2 — Alvos de toque pequenos demais e perigosamente próximos
+### A2 — Alvos de toque pequenos demais e perigosamente próximos ✅ FEITO *(exceto paginação)*
 
 **Onde:** `products/index.blade.php:67-92` · `customers/index.blade.php:43-66`
 
@@ -258,9 +308,18 @@ Aceitáveis: FAB de novo produto (`p-3` + 24px ≈ 48px, `products/index.blade.p
 
 **Como resolver:** substituir os ícones-only por **botões com texto** — "Editar" e "Excluir" — com no mínimo `py-3 px-4`, separados por espaço generoso, e **Excluir visualmente distinto** (contorno vermelho, não só ícone vermelho). Texto é mais rápido de ler que ícone para quem não cresceu com essas convenções.
 
+**O que foi feito** ✅
+
+- `products/index` e `customers/index` — os 4 SVG de 24px viraram botões com rótulo **"Editar"** e **"Excluir"**: `min-h-11 px-5 py-3 text-base font-bold`, contorno de 2px, `gap-3`, e `focus-visible:outline` (antes não havia foco visível em ação nenhuma de linha). Excluir tem contorno vermelho próprio, não só o ícone tingido de vermelho.
+- `sales/index` — "Ver Detalhes" era um link solto de texto; virou botão com a mesma altura mínima de 44px. E o `<select>` de status saiu de `px-3 py-1 text-sm w-36` (~28px de altura) para `min-h-11 px-4 py-3 text-base w-44`.
+- **Bônus de `A6`, uma string cada:** o `confirm()` agora **nomeia o registro** — *"Excluir o produto Coca Cola 2L? Esta ação não pode ser desfeita."* em vez de "Tem certeza que deseja excluir este produto?". Usa a diretiva `@js()` do Blade, que codifica em JSON com `JSON_HEX_QUOT|JSON_HEX_APOS`, então nome com aspas ou apóstrofo não quebra o JavaScript. **Continua sendo o `confirm()` nativo** — trocar pelo `x-modal` acessível segue pendente em `A6`.
+- `tests/Feature/SmokeTest.php` — abre as 10 telas principais (`assertOk`) e confere que as listas mostram "Editar" e "Excluir" como texto. Dez views foram editadas nesta rodada; erro de Blade só aparece ao renderizar.
+
+**Continua pendente em `A2`:** a paginação segue sendo a view padrão do Laravel, com alvos pequenos. Precisa de `php artisan vendor:publish --tag=laravel-pagination` para customizar — é uma tarefa própria, não um ajuste de classe.
+
 ---
 
-### A3 — Botões de ícone sem nome acessível
+### A3 — Botões de ícone sem nome acessível ✅ FEITO
 
 **Onde:** `products/index.blade.php:67` (editar), `:80` (excluir), `:103` (FAB) · `customers/index.blade.php:43,57`
 
@@ -269,6 +328,8 @@ Nenhum tem `aria-label`, `title` ou `sr-only`. Um leitor de tela anuncia um link
 O padrão correto **já existe no projeto** — `navigation.blade.php:22,81` fazem certo com `<span class="sr-only">`. É só aplicar. Resolvido de graça se §A2 for implementado com texto visível.
 
 Adjacente: os SVGs decorativos dos tiles do dashboard não têm `aria-hidden="true"` (`dashboard.blade.php:15,31,47,63`), enquanto os da navegação têm.
+
+**O que foi feito** ✅ — os 4 ícones das tabelas viraram texto (§A2), então o nome acessível passou a ser o próprio rótulo: não sobrou ícone-only nas listas. O FAB de novo produto ganhou `title` + `<span class="sr-only">` e `aria-hidden="true"` no SVG. Os 4 SVG decorativos dos tiles do dashboard também ganharam `aria-hidden="true"` — o rótulo ao lado já diz o que o tile é, e o leitor de tela não precisa anunciar o desenho.
 
 ---
 
@@ -303,11 +364,9 @@ Adjacente: os SVGs decorativos dos tiles do dashboard não têm `aria-hidden="tr
 
 ### A6 — Confirmação de ações destrutivas
 
-**Estado atual:**
-- Produto: `confirm('Tem certeza que deseja excluir este produto?')` (`products/index.blade.php:82`)
-- Cliente: `confirm('Excluir este cliente?')` (`customers/index.blade.php:58`)
+**Estado atual** — parcialmente resolvido junto com §A2: os dois `confirm()` agora **nomeiam o registro** (*"Excluir o produto Coca Cola 2L? Esta ação não pode ser desfeita."*), então o usuário consegue verificar que clicou na linha certa.
 
-Três palavras, sem dizer **qual** cliente, num diálogo nativo minúsculo e sem estilo. Numa lista de 10 linhas, o usuário não tem como confirmar que clicou na linha certa.
+**O que continua pendente aqui:** ainda é o `confirm()` nativo — diálogo minúsculo, sem estilo, sem foco gerenciado, com botões "OK/Cancelar" em vez de "Excluir/Manter". O `x-modal` acessível já existe no repositório e é usado só na exclusão de conta.
 
 **Pior caso, e não tem confirmação nenhuma:** `sales/index.blade.php:59` — `<select name="status" onchange="this.form.submit()">`. Um giro de roda do mouse sobre o select focado, ou uma seta do teclado, **marca a venda como Paga e grava**. A ação é irreversível pela interface: o select fica `disabled` quando `paid` (`:61`) e não há como voltar.
 
@@ -598,7 +657,9 @@ Todos os índices usam `->latest()` (ordena por `created_at`) filtrando por `use
 
 ### T9 — Dívidas de infraestrutura
 
-- `docker-compose.yml` no repositório tem **senhas de MySQL em texto** e monta caminhos (`./workspace`, `./mysql/*`, contexto `./php2`) que **não existem no repositório** — parece obsoleto. Este projeto roda no ambiente compartilhado de `/home/guilherme`, no container `guilherme_php2_1`. Ou o compose é corrigido, ou removido.
+- `docker-compose.yml` tem **senhas de MySQL em texto no repositório** (`MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD`). Em ambiente local é tolerável; vira problema no dia em que o mesmo arquivo servir de base para outro ambiente. Mover para `.env` com default é barato.
+
+  > **Correção desta seção:** quando esta doc foi escrita, o `docker-compose.yml` era uma cópia obsoleta da infra compartilhada (montava `./workspace`, `./mysql/*`, contexto `./php2`) e a doc concluía que o projeto rodava em `/home/guilherme`. Isso **não vale mais**: o projeto hoje tem **stack própria e self-contida** (`systembar_nginx`, `systembar_php`, `systembar_mysql`, `systembar_node`), com portas deslocadas de propósito para conviver com a infra compartilhada e com a do auditoria-ideal. Ver a seção "Como rodar e verificar".
 - `database/seeders/DatabaseSeeder.php:18-22` cria `admin@admin.com` / `102030` **sem guarda de ambiente** (`app()->environment()`). Precisa de guarda antes de qualquer deploy.
 - `bootstrap/app.php`: `withMiddleware` e `withExceptions` vazios. Sem página de erro customizada — um 500 cru é assustador para este público. Uma página de erro em português dizendo o que fazer é barato e vale muito.
 
@@ -609,19 +670,21 @@ Todos os índices usam `->latest()` (ordena por `created_at`) filtrando por `use
 Quatro entregas pequenas, não uma grande. Cada uma é utilizável por si.
 
 ### Fase 1 — Base invisível (menor risco, maior percepção)
-`B7` locale + `lang/pt_BR` · `B8` timezone · `A1` tipografia (**incluindo apagar o override de `.text-2xl`**) · `B6` máscara · `B10` erros visíveis + `old()`
+~~`B7` locale + `lang/pt_BR`~~ **✅** · ~~`A1` tipografia~~ **✅** · ~~`B10` erros visíveis + `old()`~~ **✅** · `B8` timezone · `B6` máscara
+
+**Falta desta fase:** `B8` (uma linha em `config/app.php`) e `B6` — atenção: `products/edit` continua chamando `brlCurrencyMask()`, que só existe em `products/create`. Editar preço de produto ainda dá `ReferenceError` a cada tecla.
 
 Nada de estrutura nova. Muda a sensação do app inteiro com diff pequeno.
 **Pronto quando:** nenhum texto abaixo de 16px, nenhuma mensagem em inglês, todo formulário mostra o que deu errado sem apagar o que foi digitado.
 
 ### Fase 2 — Integridade de dados
-`T1` factories + primeiros testes · `B1` subtotal · `B2` estoque negativo · `B5` transação · `B3` cliente excluído · `B4` produto excluído · `B9` `->only()` · `T3` `user_id` obrigatório
+`T1` factories + primeiros testes · ~~`B1` subtotal~~ **✅** · `B2` estoque negativo (`B2b` linhas duplicadas ✅) · `B5` transação · `B3` cliente excluído · `B4` produto excluído · `B9` `->only()` · `T3` `user_id` obrigatório
 
 Factories primeiro — sem elas o resto vai sem rede de proteção.
 **Pronto quando:** existe teste cobrindo baixa de estoque, total da venda e isolamento entre usuários, e nenhum caminho de exclusão corrompe histórico.
 
 ### Fase 3 — UX 50+
-`A2` a `A9`, criando os componentes de §V4 no caminho · `A11` (impressão do comprovante, `<title>`, `min-h-screen`) · `A10` decidir o breakpoint
+~~`A2`~~ **✅** (menos paginação) · ~~`A3`~~ **✅** · `A4` a `A9`, criando os componentes de §V4 no caminho · `A11` (impressão do comprovante, `<title>`, `min-h-screen`) · `A10` decidir o breakpoint
 
 **Pronto quando:** nenhum alvo abaixo de 44px, nenhuma ação destrutiva sem confirmação nomeada, nenhuma tela vazia sem orientação, nenhuma tabela com rolagem horizontal no celular.
 
@@ -636,18 +699,46 @@ Fora das fases, quando fizer sentido: `T4` FormRequests · `T5` casts · `T6` de
 
 ## Como rodar e verificar
 
+O projeto tem **stack própria**, subida de dentro do diretório do projeto. Não usa a infra compartilhada de `/home/guilherme`.
+
 ```bash
-# Testes (linha de base antes das fases 2-4)
-docker exec -it guilherme_php2_1 bash -lc "cd /var/www/html/systemBar && php artisan test --compact"
+# Subir (de dentro de workspace/systemBar)
+docker compose up -d
 
-# Build do front
-docker exec -it guilherme_php2_1 bash -lc "cd /var/www/html/systemBar && npm run build"
+# Testes
+docker exec -it systembar_php sh -c "cd /var/www && php artisan test --compact"
 
-# Dev
-docker exec -it guilherme_php2_1 bash -lc "cd /var/www/html/systemBar && npm run dev"
+# Build do front (produção)
+docker exec -it systembar_node sh -c "cd /var/www && npm run build"
 ```
 
-App em `systembar.localhost` (container `guilherme_php2_1`, PHP 8.3).
+| Serviço | Container | Porta no host |
+|---|---|---|
+| HTTP | `systembar_nginx` | **8090** |
+| PHP-FPM 8.3 | `systembar_php` | — (working dir `/var/www`) |
+| MySQL 8.4 | `systembar_mysql` | 33062 |
+| Vite | `systembar_node` | 5174 |
+
+App em **`http://systembar.localhost:8090`**. O Vite **já sobe junto** com o `docker compose up -d` — não é preciso rodar `npm run dev` à mão.
+
+> ### ⚠️ Não suba um segundo `npm run dev`
+>
+> O `systembar_node` já mantém o Vite no ar. Subir outro Vite à mão — especialmente dentro do `guilherme-php2-1` da infra compartilhada, que também monta este diretório — **sobrescreve o `public/hot`**, o arquivo por onde o Laravel decide de onde servir CSS e JS. O intruso grava um endereço que o navegador não alcança (`http://[::1]:5173`, porta não publicada) e **o front inteiro quebra**: página sem estilo, Alpine morto, menu do celular inexistente. Já aconteceu.
+>
+> Sintoma e diagnóstico — olhar para onde apontam as tags de asset:
+>
+> ```bash
+> cat public/hot     # tem que ser http://localhost:5174
+> curl -s -H "Host: systembar.localhost" http://127.0.0.1:8090/login | grep -o 'http://[^"]*app.css'
+> ```
+>
+> Conserto: matar o Vite intruso e `docker restart systembar_node`, que reescreve o `hot`.
+
+> `vite.config.js` fixa `server.hmr.host = 'localhost'`. Sem isso, o `--host 0.0.0.0` do compose faz o `laravel-vite-plugin` gravar `http://0.0.0.0:5174` no `public/hot` — e `0.0.0.0` **não conecta do Windows** (`localhost` conecta). Não mexer nessa linha sem testar o carregamento dos assets no navegador.
+
+> Depois de mexer em `config/` ou `.env`, rodar `php artisan config:clear` — config em cache ignora a mudança de locale.
+>
+> A infra compartilhada de `/home/guilherme` também serve este app na porta 80 (`guilherme-nginx-1` + `guilherme-php2-1`), apontando para **outro banco**. Rodar comando ali é o que causou a confusão acima; prefira sempre os containers `systembar_*`.
 
 **Checklist manual do fluxo completo** — vale rodar ao fim de cada fase, de celular:
 

@@ -21,7 +21,7 @@
 
         <div>
             <x-input-label for="update_password_password" :value="__('Nova Senha')" />
-            <p class="mt-1 text-xs text-gray-500">{{ __('A nova senha deve ter no mínimo 8 caracteres.') }}</p>
+            <p class="mt-1 text-base text-gray-600">{{ __('A nova senha deve ter no mínimo 8 caracteres.') }}</p>
             <x-text-input id="update_password_password" name="password" type="password" class="mt-1 block w-full" autocomplete="new-password" />
             <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-2" />
         </div>

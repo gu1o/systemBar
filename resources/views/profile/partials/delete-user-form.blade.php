@@ -1,7 +1,7 @@
 <section class="space-y-6">
     <header>
         <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Delete Account') }}
+            {{ __('Excluir Conta') }}
         </h2>
 
         <p class="mt-1 text-sm text-gray-600">
@@ -28,7 +28,7 @@
             </p>
 
             <div class="mt-6">
-                <x-input-label for="password" value="{{ __('Password') }}" class="sr-only" />
+                <x-input-label for="password" value="{{ __('Senha') }}" class="sr-only" />
 
                 <x-text-input
                     id="password"

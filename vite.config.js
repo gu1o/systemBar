@@ -10,4 +10,10 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    server: {
+        // O container sobe o Vite com --host 0.0.0.0, e o laravel-vite-plugin grava
+        // esse mesmo 0.0.0.0 no public/hot — endereço que o navegador no Windows não
+        // conecta. Fixar o host anunciado faz o hot sair como http://localhost:5174.
+        hmr: { host: 'localhost' },
+    },
 });

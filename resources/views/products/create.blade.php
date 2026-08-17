@@ -35,22 +35,13 @@
                 <form action="{{ route('products.store') }}" method="POST">
                     @csrf
 
-                    @if ($errors->any())
-                        <div class="mb-6 rounded-lg border border-red-400 bg-red-50 p-4 text-red-800" role="alert">
-                            <p class="font-bold">Corrija os campos abaixo:</p>
-                            <ul class="mt-2 list-inside list-disc text-sm">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+                    <x-form-errors />
 
                     <div class="mb-6">
                         <label for="name" class="block text-gray-700 text-xl font-bold mb-2">Nome do Produto</label>
                         <input type="text" name="name" id="name" value="{{ old('name') }}"
-                            class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400"
-                            placeholder="Coca Cola 2L" required>
+                            class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400 @error('name') border-2 border-red-600 @enderror"
+                            @error('name') aria-invalid="true" @enderror placeholder="Coca Cola 2L" required>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -86,8 +77,8 @@
                             <label for="sale_price" class="block text-gray-700 text-xl font-bold mb-2">Preço de Venda
                                 (R$)</label>
                             <input type="text" name="sale_price" id="sale_price" value="{{ old('sale_price') }}"
-                                class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400"
-                                placeholder="0,00" data-mask="0000000.000" required oninput="brlCurrencyMask(event)">
+                                class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400 @error('sale_price') border-2 border-red-600 @enderror"
+                                @error('sale_price') aria-invalid="true" @enderror placeholder="0,00" data-mask="0000000.000" required oninput="brlCurrencyMask(event)">
                         </div>
                     </div>
 
@@ -96,8 +87,8 @@
                             Estoque</label>
                         <input type="number" name="stock_quantity" id="stock_quantity"
                             value="{{ old('stock_quantity') }}"
-                            class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400"
-                            required min="0" placeholder="10">
+                            class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg placeholder:text-gray-400 @error('stock_quantity') border-2 border-red-600 @enderror"
+                            @error('stock_quantity') aria-invalid="true" @enderror required min="0" placeholder="10">
                     </div>
 
                     <div class="flex items-center justify-between">

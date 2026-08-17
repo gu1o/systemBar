@@ -15,14 +15,14 @@
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 border-b pb-8">
                     <div>
-                        <h3 class="text-gray-500 text-sm font-bold uppercase tracking-wider">Cliente</h3>
+                        <h3 class="text-gray-700 text-base font-bold">Cliente</h3>
                         <p class="text-2xl font-bold text-gray-900">{{ $sale->customer->name }}</p>
                         <p class="text-gray-600">{{ $sale->customer->phone }}</p>
                     </div>
                     <div class="md:text-right">
-                        <h3 class="text-gray-500 text-sm font-bold uppercase tracking-wider">Data da Venda</h3>
+                        <h3 class="text-gray-700 text-base font-bold">Data da Venda</h3>
                         <p class="text-2xl font-bold text-gray-900">{{ $sale->created_at->format('d/m/Y H:i') }}</p>
-                        <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full {{ $sale->status == 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                        <span class="px-4 py-2 inline-flex text-base font-semibold rounded-full{{ $sale->status == 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
                             {{ $sale->status == 'paid' ? 'Pago' : 'Pendente' }}
                         </span>
                     </div>
@@ -33,10 +33,10 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto</th>
-                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Preço Unit.</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
+                                <th class="px-6 py-3 text-left text-base font-semibold text-gray-700">Produto</th>
+                                <th class="px-6 py-3 text-center text-base font-semibold text-gray-700">Qtd</th>
+                                <th class="px-6 py-3 text-right text-base font-semibold text-gray-700">Preço Unit.</th>
+                                <th class="px-6 py-3 text-right text-base font-semibold text-gray-700">Subtotal</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">

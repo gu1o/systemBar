@@ -26,19 +26,19 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-base font-semibold text-gray-700">
                                     Data</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-base font-semibold text-gray-700">
                                     Cliente</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-base font-semibold text-gray-700">
                                     Total</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-base font-semibold text-gray-700">
                                     Status</th>
                                 <th
-                                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-right text-base font-semibold text-gray-700">
                                     Ações</th>
                             </tr>
                         </thead>
@@ -57,7 +57,7 @@
                                             @method('PATCH')
 
                                             <select name="status" onchange="this.form.submit()"
-                                                class="rounded-full text-sm font-semibold px-3 py-1 w-36 {{ $sale->status == 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}"
+                                                class="min-h-11 w-44 rounded-full px-4 py-3 text-base font-semibold {{ $sale->status == 'paid' ? 'bg-green-100 text-green-900' : 'bg-yellow-100 text-yellow-900' }}"
                                                 {{ $sale->status === 'paid' ? 'disabled' : '' }}
                                                 >
                                                 <option value="pending" @selected($sale->status === 'pending')>
@@ -69,9 +69,13 @@
                                             </select>
                                         </form>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <a href="{{ route('sales.show', $sale) }}"
-                                            class="text-indigo-600 hover:text-indigo-900 text-lg">Ver Detalhes</a>
+                                    <td class="px-6 py-4">
+                                        <div class="flex justify-end">
+                                            <a href="{{ route('sales.show', $sale) }}"
+                                                class="inline-flex min-h-11 items-center rounded-lg border-2 border-[#0047AB] px-5 py-3 text-base font-bold text-[#0047AB] transition-colors hover:bg-[#0047AB] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0047AB]">
+                                                Ver Detalhes
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

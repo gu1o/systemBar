@@ -24,18 +24,19 @@
 @layer base {
     html {
         font-family: var(--font-sans);
+        /* 18px de base em vez de 16px. Público 50+: o piso é 16px, não o padrão.
+           Como todo o Tailwind é em rem, isso escala texto e espaçamento juntos. */
+        font-size: 112.5%;
+    }
+
+    body {
+        /* Estava num <style> só na página do dashboard; legibilidade vale no app todo. */
+        letter-spacing: 0.015em;
     }
 }
 
 @layer components {
     .btn-brand {
         @apply bg-[#0047AB] hover:bg-[#0056D2] text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all;
-    }
-}
-
-@layer utilities {
-    .text-2xl {
-        font-size: 1rem;
-        line-height: 1.25rem;
     }
 }

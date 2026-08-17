@@ -42,6 +42,12 @@ class SaleController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
         ]);
 
+        // O formulário permite escolher o mesmo produto em duas linhas. Consolidar antes
+        // de gravar: um item por produto no comprovante, uma única baixa de estoque.
+        $quantities = collect($request->items)
+            ->groupBy('product_id')
+            ->map(fn ($lines) => (int) $lines->sum('quantity'));
+
         $totalAmount = 0;
         $sale = $request->user()->sales()->create([
             'customer_id' => $request->customer_id,
@@ -49,19 +55,17 @@ class SaleController extends Controller
             'status' => 'pending',
         ]);
 
-        foreach ($request->items as $item) {
-            $product = $request->user()->products()->findOrFail($item['product_id']);
-            $subtotal = $product->sale_price * $item['quantity'];
+        foreach ($quantities as $productId => $quantity) {
+            $product = $request->user()->products()->findOrFail($productId);
 
             $sale->items()->create([
                 'product_id' => $product->id,
-                'quantity' => $item['quantity'],
+                'quantity' => $quantity,
                 'unit_price' => $product->sale_price,
-                'subtotal' => $subtotal,
             ]);
 
-            $product->decrement('stock_quantity', $item['quantity']);
-            $totalAmount += $subtotal;
+            $product->decrement('stock_quantity', $quantity);
+            $totalAmount += $product->sale_price * $quantity;
         }
 
         $sale->update(['total_amount' => $totalAmount]);

@@ -10,10 +10,12 @@
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-8">
                 <form action="{{ route('sales.store') }}" method="POST">
                     @csrf
-                    
+
+                    <x-form-errors />
+
                     <div class="mb-8">
                         <label for="customer_id" class="block text-gray-700 text-xl font-bold mb-2">Selecionar Cliente</label>
-                        <select name="customer_id" id="customer_id" class="shadow border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg" required>
+                        <select name="customer_id" id="customer_id" class="shadow border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg @error('customer_id') border-2 border-red-600 @enderror" @error('customer_id') aria-invalid="true" @enderror required>
                             <option value="">Escolha um cliente...</option>
                             @foreach($customers as $customer)
                                 <option value="{{ $customer->id }}">{{ $customer->name }}</option>

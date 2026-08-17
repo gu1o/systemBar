@@ -13,7 +13,7 @@
 
             <!-- Email Address -->
             <div class="flex flex-col items-start gap-2 self-stretch">
-                <x-input-label for="email" :value="__('Email')" />
+                <x-input-label for="email" :value="__('E-mail')" />
                 <x-text-input id="email" class="block w-full" type="email" name="email" :value="old('email')"
                     required autocomplete="username" placeholder="Ex.: joao@gmail.com" />
                 <x-input-error :messages="$errors->get('email')" class="mt-2" />
@@ -25,7 +25,7 @@
             <div class="flex flex-col items-start gap-2 self-stretch">
                 <x-input-label for="password" :value="__('Senha')" />
 
-                <p class="text-xs text-gray-500">{{ __('A senha deve ter no mínimo 8 caracteres.') }}</p>
+                <p class="text-base text-gray-600">{{ __('A senha deve ter no mínimo 8 caracteres.') }}</p>
                 <x-text-input id="password" class="block w-full mt-[-4px]" type="password" name="password" placeholder="********"
                     required autocomplete="new-password" />
 

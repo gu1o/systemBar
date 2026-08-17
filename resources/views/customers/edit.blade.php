@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-white leading-tight">
-            {{ __('Cadastrar Novo Cliente') }}
+            {{ __('Editar Cliente') }}
         </h2>
     </x-slot>
 
@@ -13,16 +13,22 @@
                     @csrf
                     @method('PUT')
 
+                    <x-form-errors />
+
                     <div class="mb-6">
-                        <label class="block text-xl font-bold mb-2">Nome</label>
-                        <input type="text" name="name" placeholder="Nome"
-                            value="{{ old('name', $customer->name) }}" class="w-full rounded border px-4 py-3" required>
+                        <label for="name" class="block text-xl font-bold mb-2">Nome</label>
+                        <input type="text" name="name" id="name" placeholder="Nome"
+                            value="{{ old('name', $customer->name) }}"
+                            class="w-full rounded border px-4 py-3 text-lg @error('name') border-2 border-red-600 @enderror"
+                            @error('name') aria-invalid="true" @enderror required>
                     </div>
 
                     <div class="mb-6">
-                        <label class="block text-xl font-bold mb-2">Telefone</label>
-                        <input type="text" name="phone" id="phone" class="w-full rounded border px-4 py-3"
-                            placeholder="(00) 00000-0000" value="{{ old('phone', $customer->phone) }}">
+                        <label for="phone" class="block text-xl font-bold mb-2">Telefone</label>
+                        <input type="text" name="phone" id="phone"
+                            class="w-full rounded border px-4 py-3 text-lg @error('phone') border-2 border-red-600 @enderror"
+                            @error('phone') aria-invalid="true" @enderror placeholder="(00) 00000-0000"
+                            value="{{ old('phone', $customer->phone) }}">
                     </div>
 
                     <script>
@@ -45,17 +51,20 @@
                     </script>
 
                     <div class="mb-8">
-                        <label class="block text-xl font-bold mb-2">Observações</label>
-                        <textarea name="notes" placeholder="Observações" class="w-full rounded border px-4 py-3">{{ old('notes', $customer->notes) }}</textarea>
+                        <label for="notes" class="block text-xl font-bold mb-2">Observações</label>
+                        <textarea name="notes" id="notes" placeholder="Observações"
+                            class="w-full rounded border px-4 py-3 text-lg @error('notes') border-2 border-red-600 @enderror"
+                            @error('notes') aria-invalid="true" @enderror>{{ old('notes', $customer->notes) }}</textarea>
                     </div>
 
-                    <div class="flex justify-between">
-                        <button class="bg-[#008080] text-white px-8 py-3 rounded-lg text-xl">
-                            Salvar Cliente
-                        </button>
-                        <a href="{{ route('customers.index') }}" class="text-lg">
+                    <div class="flex items-center justify-between">
+                        <a href="{{ route('customers.index') }}"
+                            class="text-gray-600 hover:text-red-500 font-bold text-lg transition-colors duration-300">
                             Cancelar
                         </a>
+                        <x-button-submit>
+                            Atualizar Cliente
+                        </x-button-submit>
                     </div>
                 </form>
 
