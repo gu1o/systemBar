@@ -51,7 +51,7 @@
                                             @method('DELETE')
                                             <button type="submit"
                                                 class="inline-flex min-h-11 cursor-pointer items-center rounded-lg border-2 border-red-700 px-5 py-3 text-base font-bold text-red-700 transition-colors hover:bg-red-700 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
-                                                onclick="return confirm('Excluir o cliente ' + @js($customer->name) + '? Esta ação não pode ser desfeita.')">
+                                                onclick="return confirm('Excluir o cliente ' + @js($customer->name) + '? Ele sai da sua lista. As compras dele continuam no histórico.')">
                                                 Excluir
                                             </button>
                                         </form>

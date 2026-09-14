@@ -16,8 +16,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 border-b pb-8">
                     <div>
                         <h3 class="text-gray-700 text-base font-bold">Cliente</h3>
-                        <p class="text-2xl font-bold text-gray-900">{{ $sale->customer->name }}</p>
-                        <p class="text-gray-600">{{ $sale->customer->phone }}</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ $sale->customer?->name ?? 'Cliente removido' }}</p>
+                        <p class="text-gray-600">{{ $sale->customer?->phone }}</p>
                     </div>
                     <div class="md:text-right">
                         <h3 class="text-gray-700 text-base font-bold">Data da Venda</h3>
@@ -42,7 +42,7 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($sale->items as $item)
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{{ $item->product->name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{{ $item->product?->name ?? 'Produto removido' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-lg text-gray-900">{{ $item->quantity }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-lg text-gray-600">R$ {{ number_format($item->unit_price, 2, ',', '.') }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-lg font-bold text-gray-900">R$ {{ number_format($item->subtotal, 2, ',', '.') }}</td>

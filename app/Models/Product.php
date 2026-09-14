@@ -6,11 +6,15 @@ use App\Models\Concerns\ScopedToUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
     use HasFactory;
     use ScopedToUser;
+    // Excluir produto apagava os itens de todas as vendas passadas (cascade da FK
+    // de sale_items). Agora sai da lista e o histórico fica (§B4).
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.

@@ -40,6 +40,7 @@ class SaleItem extends Model
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        // withTrashed: produto arquivado continua nomeado no comprovante antigo (§B4).
+        return $this->belongsTo(Product::class)->withTrashed();
     }
 }

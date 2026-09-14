@@ -30,7 +30,9 @@ class Sale extends Model
 
     public function customer(): BelongsTo
     {
-        return $this->belongsTo(Customer::class);
+        // withTrashed: o cliente arquivado tem que continuar aparecendo no histórico
+        // da venda — é o nome que identifica a compra (§B3).
+        return $this->belongsTo(Customer::class)->withTrashed();
     }
 
     /**

@@ -5,6 +5,8 @@
         </h2>
     </x-slot>
 
+    <x-currency-mask />
+
     <div class="py-12 bg-[#002366] min-h-screen">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-8">
@@ -37,7 +39,6 @@
                             </label>
                             <input
                                 type="text"
-                                step="0.01"
                                 name="cost_price"
                                 id="cost_price"
                                 value="{{ old('cost_price', $product->cost_price) }}"
@@ -52,7 +53,6 @@
                             </label>
                             <input
                                 type="text"
-                                step="0.01"
                                 name="sale_price"
                                 id="sale_price"
                                 value="{{ old('sale_price', $product->sale_price) }}"

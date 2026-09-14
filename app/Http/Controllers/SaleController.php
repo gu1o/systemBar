@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Sale;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class SaleController extends Controller
 {
@@ -48,27 +50,51 @@ class SaleController extends Controller
             ->groupBy('product_id')
             ->map(fn ($lines) => (int) $lines->sum('quantity'));
 
-        $totalAmount = 0;
-        $sale = $request->user()->sales()->create([
-            'customer_id' => $request->customer_id,
-            'total_amount' => 0,
-            'status' => 'pending',
-        ]);
+        $products = $request->user()->products()->findMany($quantities->keys())->keyBy('id');
 
-        foreach ($quantities as $productId => $quantity) {
-            $product = $request->user()->products()->findOrFail($productId);
+        // Estoque é validado sobre a quantidade já consolidada: linha a linha deixaria
+        // passar 3 + 3 num produto com 5. A mensagem nomeia o produto e diz quanto tem —
+        // "quantidade inválida" não diz ao dono do comércio o que fazer a seguir.
+        $shortages = $quantities
+            ->filter(fn ($quantity, $productId) => $quantity > $products[$productId]->stock_quantity)
+            ->map(function ($quantity, $productId) use ($products) {
+                $available = $products[$productId]->stock_quantity;
 
-            $sale->items()->create([
-                'product_id' => $product->id,
-                'quantity' => $quantity,
-                'unit_price' => $product->sale_price,
-            ]);
+                return "Você tem apenas {$available} ".($available === 1 ? 'unidade' : 'unidades')
+                    ." de {$products[$productId]->name} em estoque.";
+            });
 
-            $product->decrement('stock_quantity', $quantity);
-            $totalAmount += $product->sale_price * $quantity;
+        if ($shortages->isNotEmpty()) {
+            throw ValidationException::withMessages(['items' => $shortages->values()->all()]);
         }
 
-        $sale->update(['total_amount' => $totalAmount]);
+        // Tudo numa transação: sem ela, uma falha no meio do loop deixava a venda
+        // persistida com R$ 0,00, itens parciais e o estoque já baixado.
+        // Total calculado antes de gravar: a venda nasce com o valor certo, sem o
+        // update() posterior que deixava R$ 0,00 no banco quando algo falhava.
+        $totalAmount = $quantities
+            ->map(fn ($quantity, $productId) => $products[$productId]->sale_price * $quantity)
+            ->sum();
+
+        DB::transaction(function () use ($request, $quantities, $products, $totalAmount) {
+            $sale = $request->user()->sales()->create([
+                'customer_id' => $request->customer_id,
+                'total_amount' => $totalAmount,
+                'status' => 'pending',
+            ]);
+
+            foreach ($quantities as $productId => $quantity) {
+                $product = $products[$productId];
+
+                $sale->items()->create([
+                    'product_id' => $product->id,
+                    'quantity' => $quantity,
+                    'unit_price' => $product->sale_price,
+                ]);
+
+                $product->decrement('stock_quantity', $quantity);
+            }
+        });
 
         return redirect()->route('sales.index')->with('success', 'Compra registrada com sucesso!');
     }

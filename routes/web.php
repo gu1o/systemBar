@@ -19,15 +19,17 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Rotas de Produtos
-    Route::resource('products', ProductController::class);
+    // Rotas de Produtos — sem show(): o controller não tem o método, e a rota
+    // registrada respondia 500 em vez de 404 (§B9).
+    Route::resource('products', ProductController::class)->except('show');
 
-    // Rotas de Vendas (Registro de Compras)
-    Route::resource('sales', SaleController::class);
+    // Rotas de Vendas (Registro de Compras) — venda não se edita nem se exclui;
+    // o caminho previsto é cancelar com devolução ao estoque (§F4).
+    Route::resource('sales', SaleController::class)->only(['index', 'create', 'store', 'show']);
     Route::patch('/sales/{sale}/status', [SaleController::class, 'updateStatus'])
     ->name('sales.updateStatus');
 
-    Route::resource('customers', CustomersController::class);
+    Route::resource('customers', CustomersController::class)->except('show');
 });
 
 require __DIR__.'/auth.php';

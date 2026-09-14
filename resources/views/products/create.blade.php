@@ -5,29 +5,7 @@
         </h2>
     </x-slot>
 
-    <script>
-        const brlCurrencyMask = (e) => {
-            const {
-                value
-            } = e.target;
-            let mask = "";
-            mask = value.replace(",", "").replace(".", "").replace(/\D/g, "");
-
-            const options = {
-                minimumFractionDigits: 2
-            };
-            const result = new Intl.NumberFormat("pt-BR", options).format(
-                parseFloat(mask) / 100,
-            );
-
-            if (result === "NaN") {
-                e.target.value = "";
-                return;
-            }
-
-            e.target.value = result;
-        };
-    </script>
+    <x-currency-mask />
 
     <div class="py-12 bg-[#002366] min-h-screen">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">

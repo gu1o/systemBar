@@ -64,7 +64,7 @@ Nenhuma coluna nova, nenhuma migration. Efeito colateral resolvido: o `number_fo
 
 ---
 
-### B2 — Estoque fica negativo *(B2b feito; validação de estoque pendente)*
+### B2 — Estoque fica negativo ✅ FEITO
 
 **Onde:** `app/Http/Controllers/SaleController.php:42,63`
 
@@ -83,9 +83,14 @@ Isso também é a base do que falta do B2: a validação de estoque, quando entr
 
 **Aceite:** tentar vender mais que o estoque → erro claro nomeando o produto, nenhuma venda criada, estoque intacto.
 
+**O que foi feito** ✅
+
+- `SaleController::store()` — a quantidade **consolidada** por produto é conferida contra `stock_quantity` antes de gravar qualquer coisa. Validar linha a linha deixaria passar 3 + 3 num produto com 5.
+- A mensagem nomeia o produto e diz quanto tem: *"Você tem apenas 3 unidades de Coca Cola 2L em estoque."* — com singular/plural correto. Sobe como erro de validação, então aparece no `<x-form-errors />` que `sales/create` já tem.
+- `tests/Feature/SaleStockTest.php` — venda acima do estoque (nenhuma venda criada, estoque intacto), duas linhas do mesmo produto somando acima do estoque, e o caso de borda: vender **exatamente** o que tem continua funcionando.
 ---
 
-### B3 — Excluir um cliente derruba a lista de vendas (erro 500)
+### B3 — Excluir um cliente derruba a lista de vendas (erro 500) ✅ FEITO
 
 **Onde:** `app/Http/Controllers/CustomersController.php` (`destroy`) · `resources/views/sales/index.blade.php:51` · `resources/views/sales/show.blade.php:19`
 
@@ -100,9 +105,18 @@ A FK `sales.customer_id` é `onDelete('set null')` e o `destroy` do cliente é e
 
 **Aceite:** excluir um cliente com vendas → lista de Vendas continua abrindo e as vendas antigas continuam identificáveis.
 
+**O que foi feito** ✅
+
+- `SoftDeletes` em `Customer` — a exclusão física deixou de acontecer, então a FK `set null` nunca dispara e nenhuma venda perde o cliente.
+- `Sale::customer()` ganhou `->withTrashed()`: o cliente arquivado continua nomeado no histórico e no comprovante. Sem isso, arquivar teria o mesmo efeito visível de apagar.
+- Guarda nas views mesmo assim (`$sale->customer?->name ?? 'Cliente removido'` em `sales/index` e `sales/show`) — `customer_id` segue `nullable`, e venda antiga do banco atual pode já estar sem cliente.
+- O `confirm()` parou de prometer o que não é mais verdade: *"Ele sai da sua lista. As compras dele continuam no histórico."* em vez de "não pode ser desfeita".
+- `tests/Feature/ArquivamentoTest.php` — exclui cliente com venda e confere que a lista de Vendas **abre** e continua mostrando "João da Silva", que ele some da lista de Clientes, e que uma venda sem cliente nenhum mostra "Cliente removido" em vez de quebrar.
+
+**Não foi feito** (item 3 do plano original): o aviso prévio de *"este cliente tem 12 compras registradas"* antes de excluir. Depende de contagem na tela de listagem; entra junto com `A6` (modal no lugar do `confirm()`).
 ---
 
-### B4 — Excluir um produto apaga o histórico de vendas
+### B4 — Excluir um produto apaga o histórico de vendas ✅ FEITO
 
 **Onde:** `database/migrations/2026_01_19_185750_create_sale_items_table.php` · `app/Http/Controllers/ProductController.php` (`destroy`)
 
@@ -114,9 +128,17 @@ A FK `sales.customer_id` é `onDelete('set null')` e o `destroy` do cliente é e
 
 **Aceite:** excluir um produto que já foi vendido → vendas antigas continuam completas e com os itens visíveis.
 
+**O que foi feito** ✅
+
+- `SoftDeletes` em `Product` — o `onDelete('cascade')` de `sale_items.product_id` nunca mais chega a disparar, então os itens de vendas passadas continuam lá e a soma segue batendo com `total_amount`.
+- `SaleItem::product()` ganhou `->withTrashed()` — o comprovante antigo continua nomeando o produto arquivado.
+- Listagem de produtos e o `<select>` de `sales/create` já ocultam os arquivados sozinhos (é o comportamento padrão do `SoftDeletes`); o `confirm()` agora diz *"Ele sai da sua lista. As vendas já registradas continuam completas."*
+- `tests/Feature/ArquivamentoTest.php` — vende 2 unidades, exclui o produto, confere que a venda mantém 1 item e R$ 20,00, que o produto sumiu da lista **e** que continua visível no comprovante.
+
+**Não foi feito:** trocar o rótulo "Excluir" por "Arquivar" na interface. É mudança de vocabulário em várias telas e vale decidir junto com `V4`/`A6`.
 ---
 
-### B5 — Venda sem transação de banco
+### B5 — Venda sem transação de banco ✅ FEITO
 
 **Onde:** `app/Http/Controllers/SaleController.php:45-67`
 
@@ -128,9 +150,15 @@ A venda é criada com `total_amount => 0`, depois o loop cria itens e baixa o es
 
 **Aceite:** forçar exceção no meio do loop → nenhuma venda no banco, estoque intacto.
 
+**O que foi feito** ✅
+
+- Todo o `store()` passou a rodar dentro de `DB::transaction()`.
+- O total é calculado **antes** de criar a venda, então ela nasce com o valor certo — o `update(['total_amount' => ...])` posterior, que era a origem do R$ 0,00 persistido, deixou de existir.
+- Os produtos são carregados uma vez com `findMany()` em vez de um `findOrFail()` por item dentro do loop.
+- `tests/Feature/SaleStockTest.php` — força exceção no `creating` de `SaleItem` e confere que não sobra venda nem baixa de estoque.
 ---
 
-### B6 — Máscara de moeda quebrada na edição de produto
+### B6 — Máscara de moeda quebrada na edição de produto ✅ FEITO
 
 **Onde:** `resources/views/products/edit.blade.php:42,57` chamam `brlCurrencyMask(event)`, mas a função só existe em `resources/views/products/create.blade.php:9-30`
 
@@ -144,6 +172,11 @@ Agrava: `products/edit.blade.php:37,52` têm `step="0.01"` em `type="text"`, atr
 
 **Aceite:** digitar `1234` em Preço de Venda na tela de edição → aparece `12,34`, sem erro no console.
 
+**O que foi feito** ✅
+
+- `resources/views/components/currency-mask.blade.php` (novo) — a função saiu de dentro de `products/create` e virou componente usado pelas **duas** telas. Uma cópia só; a de edição parou de dar `ReferenceError`.
+- Os dois `step="0.01"` em campo `type="text"` de `products/edit` foram removidos — atributo sem efeito ali.
+- `tests/Feature/SmokeTest.php` — confere que as duas telas carregam a definição da máscara **e** o `oninput` que a chama. Referência quebrada não volta sem o teste apontar.
 ---
 
 ### B7 — Mensagens de validação em inglês, e uma delas sai como código na tela ✅ FEITO
@@ -178,7 +211,7 @@ Agrava: `products/edit.blade.php:37,52` têm `step="0.01"` em `type="text"`, atr
 
 ---
 
-### B8 — Horário das vendas 3 horas adiantado
+### B8 — Horário das vendas 3 horas adiantado ✅ FEITO
 
 **Onde:** `config/app.php:68` → `'timezone' => 'UTC'`, enquanto as views formatam `->format('d/m/Y H:i')` (`sales/index.blade.php:49`, `sales/show.blade.php:24`)
 
@@ -190,9 +223,10 @@ Uma venda registrada às 20h aparece como 23h. Perto da meia-noite, aparece **no
 
 **Aceite:** registrar uma venda → o horário exibido é o do relógio de parede.
 
+**O que foi feito** ✅ — `config/app.php:68` passou de `UTC` para `America/Sao_Paulo`. Uma linha. Desbloqueia o "vendido hoje" de §F1.
 ---
 
-### B9 — 5 rotas registradas sem método no controller (e venda não pode ser cancelada)
+### B9 — 5 rotas registradas sem método no controller ✅ FEITO *(a lacuna de cancelar venda segue em F4)*
 
 **Onde:** `routes/web.php:23,26,30`
 
@@ -206,6 +240,7 @@ Nada linka para elas hoje, então é latente. Mas o corolário é uma lacuna fun
 
 **Aceite:** acessar `/products/1` → 404, não 500.
 
+**O que foi feito** ✅ — `->except('show')` em `products` e `customers`, `->only(['index','create','store','show'])` em `sales`. **Resultado real: 405, não 404** — a URI `/products/{id}` continua registrada para `PUT`/`DELETE`, então o `GET` bate em método não permitido. O que importa é que deixou de ser 500 (`BadMethodCallException`). Coberto em `tests/Feature/SmokeTest.php`.
 ---
 
 ### B10 — Erros de validação invisíveis em 4 dos 5 formulários ✅ FEITO
@@ -615,7 +650,7 @@ Registrado para não se perder, sem prioridade atribuída: relatório de faturam
 
 Curto e direto, porque sustenta tudo acima.
 
-### T1 — Zero testes do domínio
+### T1 — Zero testes do domínio ✅ FEITO *(factories criadas; cobertura segue crescendo)*
 
 `tests/` é apenas o scaffolding do Breeze: 6 testes de autenticação, `ProfileTest`, 2 `ExampleTest`. **Nenhum teste de produto, cliente ou venda.** Não há teste da baixa de estoque, do cálculo do total, do parser de moeda pt-BR, do blind index — nem do **isolamento multi-tenant**, que foi o objetivo inteiro do commit `ad4f1a8`.
 
@@ -627,7 +662,7 @@ Prioridade de cobertura: (1) isolamento entre usuários, (2) baixa de estoque e 
 
 `app/Models/Concerns/ScopedToUser.php:16` aplica o escopo só `if (Auth::check())`. Em contexto de console, queue ou scheduler **não há autenticação, logo não há escopo** — `Product::all()` retorna as linhas de todos os usuários. Não há comandos nem jobs hoje, então é latente; é uma armadilha de vazamento entre comércios no primeiro que for escrito. Documentar no próprio trait, no mínimo.
 
-### T3 — `user_id` é `nullable` nas três tabelas de tenant
+### T3 — `user_id` é `nullable` nas três tabelas de tenant ✅ FEITO
 
 `products`, `customers` e `sales` declaram `->string('user_id', 36)->nullable()`. Uma linha com `user_id = NULL` fica **invisível para todos os usuários** (por causa do escopo global) e órfã para sempre. Deveria ser obrigatório.
 
@@ -663,37 +698,74 @@ Todos os índices usam `->latest()` (ordena por `created_at`) filtrando por `use
 - `database/seeders/DatabaseSeeder.php:18-22` cria `admin@admin.com` / `102030` **sem guarda de ambiente** (`app()->environment()`). Precisa de guarda antes de qualquer deploy.
 - `bootstrap/app.php`: `withMiddleware` e `withExceptions` vazios. Sem página de erro customizada — um 500 cru é assustador para este público. Uma página de erro em português dizendo o que fazer é barato e vale muito.
 
+**O que foi feito** ✅ (parte do bloqueio)
+
+- `ProductFactory`, `CustomerFactory` e `SaleFactory` criadas. `SaleFactory` documenta o uso de `recycle($user)` — sem ele, cada relação cria o próprio usuário e o teste nasce com dados de dois comércios diferentes.
+- Cobertura atual: comprovante e consolidação de itens (`SaleReceiptTest`), estoque e transação (`SaleStockTest`), erros de formulário (`FormErrorsTest`), locale (`LocalizationTest`), telas principais (`SmokeTest`). **41 testes passando.**
+- **Continua faltando** o item (1) da lista de prioridade acima: teste de **isolamento entre usuários**, que era o objetivo do commit `ad4f1a8`. E o parser `normalizeMoneyForValidation`.
+**O que foi feito** ✅ — `database/migrations/2026_09_14_100001_make_user_id_required_on_tenant_tables.php` põe `NOT NULL` em `products.user_id`, `customers.user_id` e `sales.user_id`. A migration **falha antes de alterar nada** se houver linha órfã, dizendo quantas e em qual tabela: linha sem dono é dado de alguém, não se apaga sozinho. Aplicada no banco de dev.
 ---
 
 # 6. Ordem de execução sugerida
 
-Quatro entregas pequenas, não uma grande. Cada uma é utilizável por si.
+> **Validado contra o código em 14/09/2026**, e atualizado no mesmo dia depois da rodada do P0. Cada item abaixo foi conferido no repositório, não só na leitura desta doc. Correções de rastro: `customers/edit.blade.php:4` já diz "Editar Cliente" e `products/edit` já tem `min="0"` no estoque — os dois sub-itens (`A11`, `A4`) estavam marcados como pendentes sem estar.
 
-### Fase 1 — Base invisível (menor risco, maior percepção)
-~~`B7` locale + `lang/pt_BR`~~ **✅** · ~~`A1` tipografia~~ **✅** · ~~`B10` erros visíveis + `old()`~~ **✅** · `B8` timezone · `B6` máscara
+## Situação
 
-**Falta desta fase:** `B8` (uma linha em `config/app.php`) e `B6` — atenção: `products/edit` continua chamando `brlCurrencyMask()`, que só existe em `products/create`. Editar preço de produto ainda dá `ReferenceError` a cada tecla.
+| Bloco | Itens | Concluídos | Pendentes |
+|---|---|---|---|
+| **B** — Bugs | 10 | **10 — bloco fechado** | **0** |
+| **A** — Acessibilidade/UX | 11 | 2 (`A1`, `A3`) | **9** — `A2`, `A4`–`A11` (`A2`, `A6`, `A11` parciais) |
+| **V** — Visual | 5 acionáveis (`V1` é diagnóstico) | 0 | **5** — `V4` parcial: só `<x-form-errors>` e `<x-currency-mask>` existem |
+| **F** — Funcionalidades | 5 | 0 | **5** |
+| **T** — Base técnica | 9 | 2 (`T1`, `T3`) | **7** |
+| **Total** | **40** | **14** | **26** (4 deles parciais) |
 
-Nada de estrutura nova. Muda a sensação do app inteiro com diff pequeno.
-**Pronto quando:** nenhum texto abaixo de 16px, nenhuma mensagem em inglês, todo formulário mostra o que deu errado sem apagar o que foi digitado.
+O que a varredura ainda encontra hoje: `stock_alert` validado e sem campo em formulário · nenhum `@forelse`, nenhum `session('error')` renderizado, nenhum `@media print`, `resources/views/vendor/` inexistente · nenhum `casts()` de decimal · regras de produto e cliente duplicadas entre `store()` e `update()`.
 
-### Fase 2 — Integridade de dados
-`T1` factories + primeiros testes · ~~`B1` subtotal~~ **✅** · `B2` estoque negativo (`B2b` linhas duplicadas ✅) · `B5` transação · `B3` cliente excluído · `B4` produto excluído · `B9` `->only()` · `T3` `user_id` obrigatório
+## Ordem de execução
 
-Factories primeiro — sem elas o resto vai sem rede de proteção.
-**Pronto quando:** existe teste cobrindo baixa de estoque, total da venda e isolamento entre usuários, e nenhum caminho de exclusão corrompe histórico.
+Ordenada por *dano ao usuário ÷ esforço*, não por bloco. Faça de cima para baixo.
 
-### Fase 3 — UX 50+
-~~`A2`~~ **✅** (menos paginação) · ~~`A3`~~ **✅** · `A4` a `A9`, criando os componentes de §V4 no caminho · `A11` (impressão do comprovante, `<title>`, `min-h-screen`) · `A10` decidir o breakpoint
+### P0 — Integridade de dados
+Nesta ordem; `T1` primeiro porque é a rede de proteção dos outros oito.
 
-**Pronto quando:** nenhum alvo abaixo de 44px, nenhuma ação destrutiva sem confirmação nomeada, nenhuma tela vazia sem orientação, nenhuma tabela com rolagem horizontal no celular.
+| # | Item | Por quê agora |
+|---|---|---|
+| 1 | ~~`T1` factories (`Product`, `Customer`, `Sale`)~~ **✅** | Rede de proteção do resto do P0 |
+| 2 | ~~`B8` timezone~~ **✅** | 1 linha; data e hora de venda estavam 3h à frente |
+| 3 | ~~`B6` máscara de moeda~~ **✅** | `ReferenceError` a cada tecla ao editar preço |
+| 4 | ~~`B5` `DB::transaction` no `store()`~~ **✅** | Falha no meio deixava venda fantasma de R$ 0,00 |
+| 5 | ~~`B2` validação de estoque~~ **✅** | Sobre a quantidade consolidada, com o produto nomeado na mensagem |
+| 6 | ~~`B9` `->only()` nos 3 resources~~ **✅** | Deixou de ser 500; virou 405 (a URI segue viva para `PUT`/`DELETE`) |
+| 7 | ~~`B4` `SoftDeletes` em `Product`~~ **✅** | O cascade apagava itens de vendas passadas |
+| 8 | ~~`B3` `SoftDeletes` em `Customer` + `?->` na view~~ **✅** | Derrubava a lista de Vendas inteira |
+| 9 | ~~`T3` `user_id` obrigatório~~ **✅** | Fecha a porta da linha órfã invisível |
 
-### Fase 4 — Visual e funcionalidades
-`V3` tokens no `@theme` · `V2` inversão de peso · `V6` sair do CDN · `V5` limpeza · `F1` dashboard com números · `F2` estoque baixo real · `F3` busca
+**P0 concluído.** 44 testes passando. Exclusão agora é arquivamento: o registro sai da lista e o histórico fica inteiro. **Próximo é o P1, começando por `A7`** (clique duplo em "Finalizar Venda" ainda registra duas vendas — a transação do `B5` garante que cada uma seja íntegra, não que só exista uma).
 
-`V2` é a única fase que muda a aparência de forma perceptível. Vale testar com um usuário real do perfil-alvo antes de fechar.
+### P1 — UX que faz o usuário errar
 
-Fora das fases, quando fizer sentido: `T4` FormRequests · `T5` casts · `T6` decisão sobre verificação de e-mail · `F4` cancelar venda · `F5` `description` · `T9` infra.
+| # | Item | Por quê |
+|---|---|---|
+| 10 | `A7` `disabled`/"Salvando..." no submit · `<x-alert>` · renderizar `session('error')` | Clique duplo em "Finalizar Venda" registra duas vendas |
+| 11 | `A6` status da venda vira botão com confirmação | `<select onchange>` marca como Paga sem intenção e sem volta |
+| 12 | `A8` `@forelse` + estados vazios | A primeira tela do usuário novo é uma tabela vazia |
+| 13 | `A4` `type="tel"`/`inputmode` + `for`/`id` | Teclado errado no celular em campo só de dígitos |
+| 14 | `A9` cartões empilhados abaixo de `sm` | A coluna "Ações" não existe para quem não arrasta |
+| 15 | `A5` fim do que só aparece no hover | |
+| 16 | `A2` paginação publicada e com alvo de 44px | Única parte de `A2` que sobrou |
+| 17 | `A10` decidir o breakpoint único | |
+| 18 | `A11` CSS de impressão, `<title>` por página, `min-h-screen` duplicado | |
+
+### P2 — Visual e funcionalidades
+`V4` componentes restantes → `V5` limpeza → `V6` sair do CDN → `V3` tokens → `V2` inversão de peso → `F2` (meio construído, o mais barato) → `F1` → `F3` → `F5` → `F4`.
+
+`V2` é a única etapa que muda a aparência de forma perceptível. Vale testar com um usuário real do perfil-alvo antes de fechar.
+
+### P3 — Quando sobrar
+`T4` FormRequests · `T5` casts decimais · `T2` `ScopedToUser` falha aberto · `T6` decisão sobre verificação de e-mail · `T9` seeder sem guarda de ambiente + página de erro em português · `T7` · `T8`.
+
 
 ---
 

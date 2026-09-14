@@ -48,7 +48,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-lg text-gray-900">
                                         {{ $sale->created_at->format('d/m/Y H:i') }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-lg text-gray-900 font-medium">
-                                        {{ $sale->customer->name }}</td>
+                                        {{ $sale->customer?->name ?? 'Cliente removido' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-lg font-bold text-gray-900">R$
                                         {{ number_format($sale->total_amount, 2, ',', '.') }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
