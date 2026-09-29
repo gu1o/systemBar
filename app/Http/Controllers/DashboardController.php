@@ -33,7 +33,11 @@ class DashboardController extends Controller
             'vendidoNoMes' => $vendas()->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])->sum('total_amount'),
             'aReceber' => $user->sales()->where('status', 'pending')->sum('total_amount'),
             'contagemAReceber' => $user->sales()->where('status', 'pending')->count(),
+            'comprasHoje' => $vendas()->whereDate('created_at', today())->count(),
+            'ultimasHoje' => $vendas()->whereDate('created_at', today())->with(['customer', 'items.product'])->latest()->take(5)->get(),
             'estoqueBaixo' => $user->products()->whereColumn('stock_quantity', '<=', 'stock_alert')->count(),
+            // O mais perto de acabar: o cartão diz qual repor, não só quantos.
+            'maisBaixo' => $user->products()->whereColumn('stock_quantity', '<=', 'stock_alert')->orderBy('stock_quantity')->first(),
         ]);
     }
 }
