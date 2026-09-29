@@ -1,13 +1,29 @@
 <x-app-layout>
+    <x-slot name="titulo">Registrar Nova Venda</x-slot>
+
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-white leading-tight">
-            {{ __('Registrar Nova Venda') }}
-        </h2>
+        <x-page-header :titulo="__('Registrar Nova Venda')" />
     </x-slot>
 
-    <div class="py-12 bg-[#002366] min-h-screen">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-8">
+    <div class="py-12">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <x-card padding="p-8">
+                @php
+                    // Sem cliente ou sem produto em estoque os <select> apareciam vazios e a
+                    // venda era impossível, sem nenhuma explicação na tela (§A8).
+                    $faltando = collect([
+                        $customers->isEmpty() ? 'um cliente cadastrado' : null,
+                        $products->isEmpty() ? 'um produto com estoque' : null,
+                    ])->filter();
+                @endphp
+
+                @if ($faltando->isNotEmpty())
+                    <x-empty-state
+                        :acao="$customers->isEmpty() ? route('customers.create') : route('products.create')"
+                        :rotulo="$customers->isEmpty() ? 'Cadastrar um cliente' : 'Cadastrar um produto'">
+                        Para registrar uma venda falta {{ $faltando->join(' e ') }}.
+                    </x-empty-state>
+                @else
                 <form action="{{ route('sales.store') }}" method="POST">
                     @csrf
 
@@ -28,8 +44,8 @@
                         <div id="items-container">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border rounded bg-gray-50">
                                 <div class="md:col-span-2">
-                                    <label class="block text-gray-600 text-sm font-bold mb-1">Produto</label>
-                                    <select name="items[0][product_id]" class="w-full border rounded py-2 px-3 text-lg" required>
+                                    <label for="item-0-produto" class="block text-gray-700 text-base font-bold mb-1">Produto</label>
+                                    <select name="items[0][product_id]" id="item-0-produto" class="w-full border rounded py-3 px-3 text-lg" required>
                                         <option value="">Selecione um produto...</option>
                                         @foreach($products as $product)
                                             <option value="{{ $product->id }}">{{ $product->name }} - R$ {{ number_format($product->sale_price, 2, ',', '.') }} (Estoque: {{ $product->stock_quantity }})</option>
@@ -37,8 +53,8 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-gray-600 text-sm font-bold mb-1">Quantidade</label>
-                                    <input type="number" name="items[0][quantity]" min="1" value="1" class="w-full border rounded py-2 px-3 text-lg" required>
+                                    <label for="item-0-quantidade" class="block text-gray-700 text-base font-bold mb-1">Quantidade</label>
+                                    <input type="number" inputmode="numeric" name="items[0][quantity]" id="item-0-quantidade" min="1" value="1" class="w-full border rounded py-3 px-3 text-lg" required>
                                 </div>
                             </div>
                         </div>
@@ -46,7 +62,7 @@
                     </div>
 
                     <div class="flex items-center justify-between border-t pt-8">
-                        <button type="submit" class="bg-[#0047AB] hover:bg-[#0056D2] text-white font-bold py-4 px-10 rounded-lg shadow-lg transition-all text-2xl">
+                        <button type="submit" class="bg-brand-700 hover:bg-brand-600 text-white font-bold py-4 px-10 rounded-lg shadow-lg transition-all text-2xl">
                             Finalizar Venda
                         </button>
                         <a href="{{ route('sales.index') }}" class="text-gray-600 hover:text-gray-900 font-bold text-lg">
@@ -54,20 +70,22 @@
                         </a>
                     </div>
                 </form>
-            </div>
+                @endif
+            </x-card>
         </div>
     </div>
 
     <script>
         let itemIndex = 1;
-        document.getElementById('add-item').addEventListener('click', function() {
+        // ?. — sem cliente ou produto o formulário não é renderizado (§A8), e o botão não existe.
+        document.getElementById('add-item')?.addEventListener('click', function() {
             const container = document.getElementById('items-container');
             const newItem = document.createElement('div');
             newItem.className = 'grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border rounded bg-gray-50';
             newItem.innerHTML = `
                 <div class="md:col-span-2">
-                    <label class="block text-gray-600 text-sm font-bold mb-1">Produto</label>
-                    <select name="items[${itemIndex}][product_id]" class="w-full border rounded py-2 px-3 text-lg" required>
+                    <label for="item-${itemIndex}-produto" class="block text-gray-700 text-base font-bold mb-1">Produto</label>
+                    <select name="items[${itemIndex}][product_id]" id="item-${itemIndex}-produto" class="w-full border rounded py-3 px-3 text-lg" required>
                         <option value="">Selecione um produto...</option>
                         @foreach($products as $product)
                             <option value="{{ $product->id }}">{{ $product->name }} - R$ {{ number_format($product->sale_price, 2, ',', '.') }} (Estoque: {{ $product->stock_quantity }})</option>
@@ -75,8 +93,8 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-gray-600 text-sm font-bold mb-1">Quantidade</label>
-                    <input type="number" name="items[${itemIndex}][quantity]" min="1" value="1" class="w-full border rounded py-2 px-3 text-lg" required>
+                    <label for="item-${itemIndex}-quantidade" class="block text-gray-700 text-base font-bold mb-1">Quantidade</label>
+                    <input type="number" inputmode="numeric" name="items[${itemIndex}][quantity]" id="item-${itemIndex}-quantidade" min="1" value="1" class="w-full border rounded py-3 px-3 text-lg" required>
                 </div>
             `;
             container.appendChild(newItem);

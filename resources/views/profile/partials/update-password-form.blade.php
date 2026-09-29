@@ -4,7 +4,7 @@
             {{ __('Atualizar Senha') }}
         </h2>
 
-        <p class="mt-1 text-sm text-gray-600">
+        <p class="mt-1 text-base text-gray-700">
             {{ __('Certifique-se de que sua conta esteja usando uma senha longa e aleatória para permanecer segura.') }}
         </p>
     </header>
@@ -36,13 +36,7 @@
             <x-primary-button>{{ __('Salvar') }}</x-primary-button>
 
             @if (session('status') === 'password-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600"
-                >{{ __('Alterações salvas.') }}</p>
+                <p class="text-lg font-bold text-green-800">{{ __('Alterações salvas.') }}</p>
             @endif
         </div>
     </form>

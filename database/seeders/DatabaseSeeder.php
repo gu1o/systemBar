@@ -14,6 +14,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Este seeder cria um usuário com senha conhecida. Fora de desenvolvimento
+        // isso é uma porta aberta com a chave na fechadura (§T9).
+        if (! app()->environment('local', 'testing')) {
+            $this->command?->warn('DatabaseSeeder só roda em local/testing — nada foi criado.');
+
+            return;
+        }
+
         // Criar usuário de teste (id será UUID gerado pelo HasUuids)
         $user = User::factory()->create([
             'name' => 'Administrador',

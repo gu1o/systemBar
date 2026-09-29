@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
+    <div class="mb-4 text-base text-gray-700">
         {{ __('Esta é uma área protegida do sistema. Confirme sua senha para continuar.') }}
     </div>
 

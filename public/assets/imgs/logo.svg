@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="System Bar">
+    <title>System Bar</title>
+
+    <!-- Fundo próprio: o emblema aparece sobre a barra marinho e sobre a aba do
+         navegador, que muda de cor conforme o tema. Marca sem fundo sumiria na aba
+         escura, que é o motivo de o favicon não ser transparente. -->
+    <circle cx="32" cy="32" r="32" fill="#ffffff"/>
+
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Copo: trapézio aberto, traço grosso e uniforme. Ocupa 90% do espaço útil
+             do círculo: a 100% as quinas encostavam na borda. -->
+        <path d="M17.6 15.8 H44.6 L38.3 48.2 H23.9 Z" stroke="#002366" stroke-width="4.5"/>
+
+        <!-- Vão branco por baixo do ✓. É o que impede o encontro dos dois traços de
+             virar um borrão azul quando a imagem cai para 32px — foi exatamente o que
+             acontecia na versão gerada. Precisa vir antes do ✓ e ser bem mais largo. -->
+        <path d="M21.2 33.8 L30.2 42.8 L50 19.4" stroke="#ffffff" stroke-width="12"/>
+
+        <!-- Confere: atravessa a parede direita do copo e sai para fora. -->
+        <path d="M21.2 33.8 L30.2 42.8 L50 19.4" stroke="#008080" stroke-width="6.3"/>
+    </g>
+</svg>

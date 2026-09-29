@@ -23,13 +23,22 @@ class Product extends Model
      */
     protected $fillable = [
         'name',
-        'description',
         'cost_price',
         'sale_price',
         'stock_quantity',
         'stock_alert',
         'user_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'sale_price' => 'decimal:2',
+            'cost_price' => 'decimal:2',
+            'stock_quantity' => 'integer',
+            'stock_alert' => 'integer',
+        ];
+    }
 
     public function user(): BelongsTo
     {

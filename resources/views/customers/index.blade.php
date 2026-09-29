@@ -1,27 +1,21 @@
 <x-app-layout>
+    <x-slot name="titulo">Clientes</x-slot>
+
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-white leading-tight">
-                {{ __('Clientes') }}
-            </h2>
+        <x-page-header :titulo="__('Clientes')">
             <a href="{{ route('customers.create') }}"
-                class="bg-[#008080] hover:bg-[#00A0A0] text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all">
+                class="bg-accent-700 hover:bg-accent-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all">
                 + Novo Cliente
             </a>
-        </div>
+        </x-page-header>
     </x-slot>
 
-    <div class="py-12 bg-[#002366] min-h-screen">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <x-card>
+                <x-search-form :rota="route('customers.index')" :valor="$busca" rotulo="Buscar cliente pelo nome" exemplo="Ex.: Maria" />
 
-                @if (session('success'))
-                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6">
-                        {{ session('success') }}
-                    </div>
-                @endif
-
-                <table class="min-w-full divide-y divide-gray-200">
+                <table class="tabela-cartoes min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-base font-semibold text-gray-700">Nome</th>
@@ -31,41 +25,47 @@
                     </thead>
 
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach ($customers as $customer)
+                        @forelse ($customers as $customer)
                             <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 text-lg font-medium text-gray-900">
+                                <td data-rotulo="Nome" class="px-6 py-4 text-lg font-medium text-gray-900">
                                     {{ $customer->name }}
                                 </td>
-                                <td class="px-6 py-4 text-lg text-gray-600">
+                                <td data-rotulo="Telefone" class="px-6 py-4 text-lg text-gray-600">
                                     {{ $customer->phone ?? '-' }}
                                 </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex flex-wrap items-center justify-end gap-3">
-                                        <a href="{{ route('customers.edit', $customer) }}"
-                                            class="inline-flex min-h-11 items-center rounded-lg border-2 border-[#0047AB] px-5 py-3 text-base font-bold text-[#0047AB] transition-colors hover:bg-[#0047AB] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0047AB]">
-                                            Editar
-                                        </a>
-
-                                        <form action="{{ route('customers.destroy', $customer) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="inline-flex min-h-11 cursor-pointer items-center rounded-lg border-2 border-red-700 px-5 py-3 text-base font-bold text-red-700 transition-colors hover:bg-red-700 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
-                                                onclick="return confirm('Excluir o cliente ' + @js($customer->name) + '? Ele sai da sua lista. As compras dele continuam no histórico.')">
-                                                Excluir
-                                            </button>
-                                        </form>
-                                    </div>
+                                <td data-rotulo="Ações" class="px-6 py-4">
+                                    <x-row-actions
+                                        tipo="cliente"
+                                        :nome="$customer->name"
+                                        :editar="route('customers.edit', $customer)"
+                                        :excluir="route('customers.destroy', $customer)"
+                                        :aviso="($customer->sales_count > 0
+                                            ? 'Este cliente tem '.$customer->sales_count.' '.($customer->sales_count === 1 ? 'compra registrada' : 'compras registradas').'. '
+                                            : '').'Ele sai da sua lista. As compras dele continuam no histórico.'" />
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="3">
+                                    @if ($busca !== '')
+                                        <x-empty-state :acao="route('customers.index')" rotulo="Ver todos os clientes">
+                                            Nenhum cliente com "{{ $busca }}" no nome.
+                                        </x-empty-state>
+                                    @else
+                                        <x-empty-state :acao="route('customers.create')" rotulo="Cadastrar meu primeiro cliente">
+                                            Você ainda não cadastrou nenhum cliente. Toda venda é registrada no nome de um.
+                                        </x-empty-state>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
 
                 <div class="mt-6">
                     {{ $customers->links() }}
                 </div>
-            </div>
+            </x-card>
         </div>
     </div>
 </x-app-layout>

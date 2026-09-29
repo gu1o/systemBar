@@ -1,13 +1,13 @@
 <x-app-layout>
+    <x-slot name="titulo">Cadastrar Cliente</x-slot>
+
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-white leading-tight">
-            {{ __('Cadastrar Novo Cliente') }}
-        </h2>
+        <x-page-header :titulo="__('Cadastrar Novo Cliente')" />
     </x-slot>
 
-    <div class="py-12 bg-[#002366] min-h-screen">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white shadow-xl sm:rounded-lg p-8">
+    <div class="py-12">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <x-card padding="p-8">
 
                 <form action="{{ route('customers.store') }}" method="POST">
                     @csrf
@@ -16,36 +16,19 @@
 
                     <div class="mb-6">
                         <label for="name" class="block text-xl font-bold mb-2">Nome</label>
-                        <input type="text" name="name" id="name" value="{{ old('name') }}" placeholder="Nome"
+                        <input type="text" autocomplete="name" name="name" id="name" value="{{ old('name') }}" placeholder="Nome"
                             class="w-full rounded border px-4 py-3 text-lg @error('name') border-2 border-red-600 @enderror"
                             @error('name') aria-invalid="true" @enderror required>
                     </div>
 
                     <div class="mb-6">
                         <label for="phone" class="block text-xl font-bold mb-2">Telefone</label>
-                        <input type="text" name="phone" id="phone" value="{{ old('phone') }}"
+                        <input type="tel" inputmode="numeric" autocomplete="tel" data-mask-telefone
+                            aria-describedby="phone-ajuda" name="phone" id="phone" value="{{ old('phone') }}"
                             class="w-full rounded border px-4 py-3 text-lg @error('phone') border-2 border-red-600 @enderror"
                             @error('phone') aria-invalid="true" @enderror placeholder="(00) 00000-0000">
+                        <p id="phone-ajuda" class="mt-1 text-base text-gray-600">Com DDD, só números. Exemplo: (11) 98765-4321</p>
                     </div>
-
-                    <script>
-                        document.getElementById('phone').addEventListener('input', function(e) {
-                            let value = e.target.value.replace(/\D/g, '');
-                            let formatted = '';
-
-                            if (value.length > 0) {
-                                formatted = '(' + value.substring(0, 2);
-                            }
-                            if (value.length > 2) {
-                                formatted += ') ' + value.substring(2, 7);
-                            }
-                            if (value.length > 7) {
-                                formatted += '-' + value.substring(7, 11);
-                            }
-
-                            e.target.value = formatted;
-                        });
-                    </script>
 
                     <div class="mb-8">
                         <label for="notes" class="block text-xl font-bold mb-2">Observações</label>
@@ -65,7 +48,9 @@
                     </div>
                 </form>
 
-            </div>
+                <x-phone-mask />
+
+            </x-card>
         </div>
     </div>
 </x-app-layout>

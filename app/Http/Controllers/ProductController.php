@@ -2,39 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProductRequest;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     /**
-     * Converte valor monetário pt-BR (ex.: 1.234,56 ou 25,90) para formato numérico (ponto decimal).
-     */
-    private function normalizeMoneyForValidation(?string $value): ?string
-    {
-        if ($value === null || trim((string) $value) === '') {
-            return null;
-        }
-
-        $v = trim($value);
-        $v = str_replace(['R$', ' ', "\xC2\xA0"], '', $v);
-
-        if (str_contains($v, ',')) {
-            $v = str_replace('.', '', $v);
-            $v = str_replace(',', '.', $v);
-        }
-
-        return $v;
-    }
-
-    /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = auth()->user()->products()->latest()->paginate(10);
+        $busca = trim((string) $request->query('busca'));
 
-        return view('products.index', compact('products'));
+        $products = auth()->user()->products()
+            ->when($busca !== '', fn ($query) => $query->where('name', 'like', '%'.$busca.'%'))
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('products.index', compact('products', 'busca'));
     }
 
     /**
@@ -49,25 +36,9 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
-        $request->merge([
-            'sale_price' => $this->normalizeMoneyForValidation($request->input('sale_price')) ?? '',
-            'cost_price' => $this->normalizeMoneyForValidation($request->input('cost_price')),
-        ]);
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'sale_price' => 'required|numeric|min:0',
-            'cost_price' => 'nullable|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
-            'description' => 'nullable|string',
-            'stock_alert' => 'nullable|integer|min:0',
-        ]);
-
-        unset($validated['user_id']);
-
-        $request->user()->products()->create($validated);
+        $request->user()->products()->create($request->validated());
 
         // Redireciona para a lista de produtos com uma mensagem de sucesso
         return redirect()->route('products.index')
@@ -87,25 +58,11 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
+    public function update(ProductRequest $request, Product $product)
     {
         abort_unless($product->user_id === $request->user()->id, 403);
 
-        $request->merge([
-            'sale_price' => $this->normalizeMoneyForValidation($request->input('sale_price')) ?? '',
-            'cost_price' => $this->normalizeMoneyForValidation($request->input('cost_price')),
-        ]);
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'sale_price' => 'required|numeric|min:0',
-            'cost_price' => 'nullable|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
-            'description' => 'nullable|string',
-            'stock_alert' => 'nullable|integer|min:0',
-        ]);
-
-        $product->update($validated);
+        $product->update($request->validated());
 
         // Redireciona de volta para a lista com mensagem de sucesso
         return redirect()->route('products.index')
@@ -123,6 +80,6 @@ class ProductController extends Controller
 
         // Redireciona de volta para a lista com mensagem de sucesso
         return redirect()->route('products.index')
-            ->with('success', 'Produto excluído com sucesso!');
+            ->with('success', 'Produto arquivado. As vendas já registradas continuam completas.');
     }
 }

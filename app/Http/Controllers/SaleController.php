@@ -10,11 +10,25 @@ use Illuminate\Validation\ValidationException;
 
 class SaleController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $sales = auth()->user()->sales()->with(['customer'])->latest()->paginate(10);
+        $situacao = $request->query('situacao');
 
-        return view('sales.index', compact('sales'));
+        // Data inválida é ignorada em vez de virar erro: é filtro, não formulário.
+        $de = $this->data($request->query('de'));
+        $ate = $this->data($request->query('ate'));
+
+        $sales = auth()->user()->sales()
+            ->with(['customer'])
+            ->when(in_array($situacao, ['pending', 'paid', 'cancelled'], true),
+                fn ($query) => $query->where('status', $situacao))
+            ->when($de, fn ($query) => $query->whereDate('created_at', '>=', $de))
+            ->when($ate, fn ($query) => $query->whereDate('created_at', '<=', $ate))
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('sales.index', compact('sales', 'situacao', 'de', 'ate'));
     }
 
     public function create()
@@ -90,6 +104,7 @@ class SaleController extends Controller
                     'product_id' => $product->id,
                     'quantity' => $quantity,
                     'unit_price' => $product->sale_price,
+                    'unit_cost' => $product->cost_price,
                 ]);
 
                 $product->decrement('stock_quantity', $quantity);
@@ -113,13 +128,42 @@ class SaleController extends Controller
         abort_unless($sale->user_id === $request->user()->id, 403);
 
         $request->validate([
-            'status' => 'required|in:pending,paid',
+            'status' => 'required|in:paid',
         ]);
 
-        $sale->update([
-            'status' => $request->status,
-        ]);
+        // A tela esconde o caminho de volta, mas um PATCH direto levava de paid para
+        // pending. Pendente -> Pago é o único trajeto; desfazer é cancelar a venda (§F4).
+        if ($sale->status !== 'pending') {
+            return redirect()->back()->with('error', $sale->status === 'paid'
+                ? 'Esta compra já está marcada como paga.'
+                : 'Esta compra foi cancelada e não pode ser marcada como paga.');
+        }
 
-        return redirect()->back()->with('success', 'Status da venda atualizado com sucesso!');
+        $sale->update(['status' => 'paid']);
+
+        return redirect()->back()->with('success', 'Compra marcada como paga.');
+    }
+
+    public function cancel(Request $request, Sale $sale)
+    {
+        abort_unless($sale->user_id === $request->user()->id, 403);
+
+        if ($sale->status === 'cancelled') {
+            return redirect()->back()->with('error', 'Esta compra já está cancelada.');
+        }
+
+        // Devolução e mudança de status na mesma transação: estoque devolvido com a
+        // venda ainda ativa seria pior que o problema original.
+        DB::transaction(function () use ($sale) {
+            $sale->loadMissing('items');
+
+            foreach ($sale->items as $item) {
+                $item->product?->increment('stock_quantity', $item->quantity);
+            }
+
+            $sale->update(['status' => 'cancelled']);
+        });
+
+        return redirect()->back()->with('success', 'Compra cancelada. Os produtos voltaram para o estoque.');
     }
 }

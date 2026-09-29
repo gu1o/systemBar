@@ -11,17 +11,46 @@
 @plugin "daisyui";
 
 @theme {
+    /* Paleta em tokens (§V3). Eram ~40 hex soltos espalhados pelas views; trocar um
+       tom significava caçar string em 12 arquivos. Contrastes conferidos em AA. */
+
+    /* Marca */
+    --color-brand-900: #002366;   /* 14,7:1 sobre branco — barra do topo, títulos */
+    --color-brand-700: #0047AB;   /*  8,4:1 com texto branco — ação primária */
+    --color-brand-600: #0056D2;   /* hover da primária */
+    --color-accent-700: #008080;  /*  4,8:1 com texto branco — ação de cadastro */
+    --color-accent-600: #00A0A0;  /* hover do cadastro */
+
+    /* Superfícies */
+    --color-surface: #ffffff;
+    --color-surface-muted: #f1f4f9; /* fundo da página */
+    --color-edge: #d4dae3;
+
+    /* Texto */
+    --color-ink: #1a2233;
+    --color-ink-muted: #4a5568;     /* 7,4:1 — substitui text-gray-500 */
+
+    --radius-card: 0.75rem;
+
     --font-sans: "Noto Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
         "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --breakpoint-xs: 22.5rem;
     --breakpoint-sm: 40rem;
-    --breakpoint-md: 64rem;
+    /* 48rem = 768px, o padrão do Tailwind. É o ponto único de virada do app:
+       abaixo dele tudo é celular — navegação, grades e as tabelas-cartão (§A10). */
+    --breakpoint-md: 48rem;
     --breakpoint-lg: 80rem;
     --breakpoint-xl: 90rem;
     --breakpoint-2xl: 96rem;
 }
 
 @layer base {
+    /* Elementos que só aparecem quando o Alpine assume — sem isto eles piscam
+       abertos no carregamento (§V6). */
+    [x-cloak] {
+        display: none !important;
+    }
+
     html {
         font-family: var(--font-sans);
         /* 18px de base em vez de 16px. Público 50+: o piso é 16px, não o padrão.
@@ -38,5 +67,106 @@
 @layer components {
     .btn-brand {
         @apply bg-[#0047AB] hover:bg-[#0056D2] text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all;
+    }
+}
+
+/* Abaixo de sm, tabela vira lista de cartões (§A9).
+
+   A rolagem horizontal é obstáculo conhecido para este público: a vertical é
+   aprendida, a lateral não é descoberta — a coluna "Ações" simplesmente não
+   existia para quem não sabe arrastar. Feito em CSS e não duplicando a marcação
+   em Blade: um <td data-rotulo="Nome"> serve os dois formatos. */
+@media (max-width: 48rem) {
+    .tabela-cartoes thead {
+        display: none;
+    }
+
+    .tabela-cartoes,
+    .tabela-cartoes tbody,
+    .tabela-cartoes tr,
+    .tabela-cartoes td {
+        display: block;
+        width: 100%;
+    }
+
+    .tabela-cartoes tr {
+        border: 2px solid var(--color-gray-200);
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 0.5rem 0;
+    }
+
+    .tabela-cartoes td {
+        padding: 0.75rem 1rem;
+        white-space: normal;
+        text-align: left;
+    }
+
+    /* Rótulo da coluna vira rótulo da linha do cartão. */
+    .tabela-cartoes td[data-rotulo]::before {
+        content: attr(data-rotulo);
+        display: block;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--color-gray-600);
+    }
+
+    /* Ações em largura total, empilhadas: alvo grande e sem disputa de espaço. */
+    .tabela-cartoes td[data-rotulo="Ações"] > div {
+        justify-content: stretch;
+        flex-direction: column;
+    }
+
+    .tabela-cartoes td[data-rotulo="Ações"] a,
+    .tabela-cartoes td[data-rotulo="Ações"] button,
+    .tabela-cartoes td[data-rotulo="Ações"] form {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Quem pediu menos movimento no sistema operacional recebe menos movimento (§A5).
+   O app tinha transições e lg:hover:scale-105 nos tiles sem nenhuma guarda. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .group:hover {
+        transform: none !important;
+    }
+}
+
+/* Foco visível também nas linhas das listas: navegar por teclado sem saber onde
+   se está é o mesmo problema do hover, do outro lado (§A5). */
+.tabela-cartoes tr:focus-within {
+    background-color: var(--color-gray-50);
+    outline: 2px solid var(--color-gray-400);
+    outline-offset: -2px;
+}
+
+/* Impressão do comprovante (§A11): sai só o conteúdo, em preto sobre branco. */
+@media print {
+    nav,
+    header,
+    .nao-imprimir {
+        display: none !important;
+    }
+
+    body,
+    main,
+    main div {
+        background: #fff !important;
+        box-shadow: none !important;
+        color: #000 !important;
+    }
+
+    main {
+        padding: 0 !important;
     }
 }

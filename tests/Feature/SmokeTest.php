@@ -38,8 +38,8 @@ it('mostra as ações das listas como texto, não só ícone', function () {
 
     $this->actingAs($user);
 
-    $this->get(route('products.index'))->assertSee('Editar')->assertSee('Excluir');
-    $this->get(route('customers.index'))->assertSee('Editar')->assertSee('Excluir');
+    $this->get(route('products.index'))->assertSee('Editar')->assertSee('Arquivar');
+    $this->get(route('customers.index'))->assertSee('Editar')->assertSee('Arquivar');
 });
 
 // §B6 — a máscara de moeda morava só em products/create, então cada tecla digitada
@@ -75,4 +75,17 @@ it('não dá erro de servidor nas rotas que o controller não implementa', funct
     $this->get("/products/{$product->id}")->assertMethodNotAllowed();
     $this->get("/customers/{$customer->id}")->assertMethodNotAllowed();
     $this->get("/sales/{$product->id}/edit")->assertNotFound();
+});
+
+// §A2 — a paginação era a view padrão do Laravel: alvos pequenos e, sem o lang
+// publicado, "Previous/Next" em inglês.
+it('pagina em português e diz em que página o usuário está', function () {
+    $user = User::factory()->create();
+    \App\Models\Product::factory()->recycle($user)->count(12)->create();
+
+    $this->actingAs($user)
+        ->get(route('products.index'))
+        ->assertSee('Página 1 de 2')
+        ->assertSee('Próxima', false)
+        ->assertDontSee('Next');
 });

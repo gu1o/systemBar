@@ -16,7 +16,17 @@ class SaleItem extends Model
         'product_id',
         'quantity',
         'unit_price',
+        'unit_cost',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'unit_price' => 'decimal:2',
+            'unit_cost' => 'decimal:2',
+            'quantity' => 'integer',
+        ];
+    }
 
     /**
      * Valor da linha do comprovante. Calculado, não gravado: subtotal é sempre
@@ -25,6 +35,17 @@ class SaleItem extends Model
     protected function subtotal(): Attribute
     {
         return Attribute::get(fn (): float => $this->quantity * $this->unit_price);
+    }
+
+    /**
+     * Lucro da linha com o custo gravado na venda. Null quando o produto não tinha
+     * preço de custo: lucro desconhecido não é lucro igual ao preço inteiro.
+     */
+    protected function lucro(): Attribute
+    {
+        return Attribute::get(fn (): ?float => $this->unit_cost === null
+            ? null
+            : $this->quantity * ($this->unit_price - $this->unit_cost));
     }
 
     /**

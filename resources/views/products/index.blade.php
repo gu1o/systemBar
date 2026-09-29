@@ -1,28 +1,21 @@
 <x-app-layout>
+    <x-slot name="titulo">Estoque de Produtos</x-slot>
+
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-white leading-tight">
-                {{ __('Estoque de Produtos') }}
-            </h2>
+        <x-page-header :titulo="__('Estoque de Produtos')">
             <a href="{{ route('products.create') }}"
-                class="hidden md:flex bg-[#008080] hover:bg-[#00A0A0] text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all">
+                class="hidden md:flex bg-accent-700 hover:bg-accent-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all">
                 + Novo Produto
             </a>
-        </div>
+        </x-page-header>
     </x-slot>
 
-    <div class="py-12 bg-[#002366] min-h-screen">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 relative">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                @if (session('success'))
-                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
-                        <p class="font-bold">Sucesso!</p>
-                        <p>{{ session('success') }}</p>
-                    </div>
-                @endif
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <x-card>
+                <x-search-form :rota="route('products.index')" :valor="$busca" rotulo="Buscar produto pelo nome" exemplo="Ex.: Coca Cola" />
 
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
+                    <table class="tabela-cartoes min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th
@@ -31,6 +24,9 @@
                                 <th
                                     class="px-6 py-3 text-left text-base font-semibold text-gray-700">
                                     Preço Venda</th>
+                                <th
+                                    class="px-6 py-3 text-left text-base font-semibold text-gray-700">
+                                    Lucro por unidade</th>
                                 <th
                                     class="px-6 py-3 text-left text-base font-semibold text-gray-700">
                                     Estoque</th>
@@ -43,54 +39,67 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach ($products as $product)
+                            @forelse ($products as $product)
                                 <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-6 py-4 whitespace-nowrap text-lg font-medium text-gray-900">
+                                    <td data-rotulo="Nome" class="px-6 py-4 whitespace-nowrap text-lg font-medium text-gray-900">
                                         {{ $product->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-lg text-gray-600">R$
+                                    <td data-rotulo="Preço Venda" class="px-6 py-4 whitespace-nowrap text-lg text-gray-600">R$
                                         {{ number_format($product->sale_price, 2, ',', '.') }}</td>
-                                    <td
-                                        class="px-6 py-4 whitespace-nowrap text-lg font-bold {{ $product->stock_quantity <= 5 ? 'text-red-600' : 'text-gray-900' }}">
-                                        {{ $product->stock_quantity }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @if ($product->stock_quantity <= 5)
-                                            <span
-                                                class="px-4 py-2 inline-flex text-base font-semibold rounded-fullbg-red-100 text-red-800">Baixo
-                                                Estoque</span>
+                                    {{-- Sem custo não há lucro conhecido: dizer isso, não mostrar o preço inteiro como lucro. --}}
+                                    <td data-rotulo="Lucro por unidade" class="px-6 py-4 whitespace-nowrap text-lg">
+                                        @if ($product->cost_price === null)
+                                            <span class="text-ink-muted">Sem preço de custo</span>
                                         @else
-                                            <span
-                                                class="px-4 py-2 inline-flex text-base font-semibold rounded-fullbg-green-100 text-green-800">Normal</span>
+                                            @php $lucro = $product->sale_price - $product->cost_price; @endphp
+                                            <span class="font-bold {{ $lucro < 0 ? 'text-red-700' : 'text-green-800' }}">R$ {{ number_format($lucro, 2, ',', '.') }}</span>
+                                            @if ($product->sale_price > 0)
+                                                <span class="text-ink-muted">({{ number_format($lucro / $product->sale_price * 100, 0, ',', '.') }}%)</span>
+                                            @endif
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex flex-wrap items-center justify-end gap-3">
-                                            <a href="{{ route('products.edit', $product) }}"
-                                                class="inline-flex min-h-11 items-center rounded-lg border-2 border-[#0047AB] px-5 py-3 text-base font-bold text-[#0047AB] transition-colors hover:bg-[#0047AB] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0047AB]">
-                                                Editar
-                                            </a>
-                                            <form action="{{ route('products.destroy', $product) }}" method="POST">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="inline-flex min-h-11 cursor-pointer items-center rounded-lg border-2 border-red-700 px-5 py-3 text-base font-bold text-red-700 transition-colors hover:bg-red-700 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
-                                                    onclick="return confirm('Excluir o produto ' + @js($product->name) + '? Ele sai da sua lista. As vendas já registradas continuam completas.')">
-                                                    Excluir
-                                                </button>
-                                            </form>
-                                        </div>
+                                    <td data-rotulo="Estoque"
+                                        class="px-6 py-4 whitespace-nowrap text-lg font-bold {{ $product->stock_quantity <= $product->stock_alert ? 'text-red-600' : 'text-ink' }}">
+                                        {{ $product->stock_quantity }}
+                                    </td>
+                                    <td data-rotulo="Status" class="px-6 py-4 whitespace-nowrap">
+                                        @if ($product->stock_quantity <= $product->stock_alert)
+                                            <x-status-badge cor="vermelho">Baixo Estoque</x-status-badge>
+                                        @else
+                                            <x-status-badge cor="verde">Normal</x-status-badge>
+                                        @endif
+                                    </td>
+                                    <td data-rotulo="Ações" class="px-6 py-4">
+                                        <x-row-actions
+                                            tipo="produto"
+                                            :nome="$product->name"
+                                            :editar="route('products.edit', $product)"
+                                            :excluir="route('products.destroy', $product)"
+                                            aviso="Ele sai da sua lista. As vendas já registradas continuam completas." />
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="6">
+                                        @if ($busca !== '')
+                                            <x-empty-state :acao="route('products.index')" rotulo="Ver todos os produtos">
+                                                Nenhum produto com "{{ $busca }}" no nome.
+                                            </x-empty-state>
+                                        @else
+                                            <x-empty-state :acao="route('products.create')" rotulo="Cadastrar meu primeiro produto">
+                                                Você ainda não cadastrou nenhum produto. Comece pelo que mais vende.
+                                            </x-empty-state>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
-                </div>
                 <div class="mt-6">
                     {{ $products->links() }}
                 </div>
-            </div>
+            </x-card>
             <a href="{{ route('products.create') }}" title="{{ __('Cadastrar novo produto') }}"
-                class="flex absolute bottom-0 right-4 bg-[#008080] hover:bg-[#00A0A0] text-white font-bold p-3 rounded-full shadow-md transition-all z-10 md:hidden">
+                class="flex absolute bottom-0 right-4 bg-accent-700 hover:bg-accent-600 text-white font-bold p-3 rounded-full shadow-md transition-all z-10 md:hidden">
                 <span class="sr-only">{{ __('Cadastrar novo produto') }}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                     fill="none" aria-hidden="true">

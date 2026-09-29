@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -74,6 +73,22 @@ class User extends Authenticatable
         $key = config('app.blind_index_key') ?: config('app.key');
 
         return hash_hmac('sha256', $normalized, $key);
+    }
+
+    /**
+     * §T7 — o que vai para `password_reset_tokens.email`.
+     *
+     * `users.email` é criptografado e consultado por blind index, mas a tabela de
+     * reset guardava o endereço em **texto puro** como chave primária: cada "esqueci
+     * minha senha" gravava o e-mail em claro no banco enquanto o token existisse.
+     *
+     * Devolvendo o blind index, a tabela passa a guardar o mesmo hash — o broker
+     * grava e consulta pelo retorno deste método, então os dois lados batem. O link
+     * do e-mail continua sendo enviado para o endereço real (`routeNotificationForMail`).
+     */
+    public function getEmailForPasswordReset(): string
+    {
+        return static::hashEmail($this->email);
     }
 
     public function products(): HasMany

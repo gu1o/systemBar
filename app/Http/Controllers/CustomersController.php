@@ -2,16 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CustomerRequest;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 
 class CustomersController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $customers = auth()->user()->customers()->latest()->paginate(10);
+        $busca = trim((string) $request->query('busca'));
 
-        return view('customers.index', compact('customers'));
+        $customers = auth()->user()->customers()
+            ->withCount('sales')
+            ->when($busca !== '', fn ($query) => $query->where('name', 'like', '%'.$busca.'%'))
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('customers.index', compact('customers', 'busca'));
     }
 
     public function create()
@@ -19,17 +27,9 @@ class CustomersController extends Controller
         return view('customers.create');
     }
 
-    public function store(Request $request)
+    public function store(CustomerRequest $request)
     {
-        $validated = $request->validate([
-            'name'  => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'notes' => 'nullable|string',
-        ]);
-
-        unset($validated['user_id']);
-
-        $request->user()->customers()->create($validated);
+        $request->user()->customers()->create($request->validated());
 
         return redirect()->route('customers.index')
             ->with('success', 'Cliente cadastrado com sucesso!');
@@ -42,17 +42,11 @@ class CustomersController extends Controller
         return view('customers.edit', compact('customer'));
     }
 
-    public function update(Request $request, Customer $customer)
+    public function update(CustomerRequest $request, Customer $customer)
     {
         abort_unless($customer->user_id === $request->user()->id, 403);
 
-        $validated = $request->validate([
-            'name'  => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'notes' => 'nullable|string',
-        ]);
-
-        $customer->update($validated);
+        $customer->update($request->validated());
 
         return redirect()->route('customers.index')
             ->with('success', 'Cliente atualizado com sucesso!');
@@ -65,6 +59,6 @@ class CustomersController extends Controller
         $customer->delete();
 
         return redirect()->route('customers.index')
-            ->with('success', 'Cliente excluído com sucesso!');
+            ->with('success', 'Cliente arquivado. As compras dele continuam no histórico.');
     }
 }
