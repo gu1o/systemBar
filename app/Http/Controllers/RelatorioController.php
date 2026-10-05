@@ -6,8 +6,7 @@ use Illuminate\Http\Request;
 
 /**
  * Relatório de faturamento por período: quanto vendeu, quanto lucrou e quanto
- * falta receber, dia a dia. Padrão é o mês corrente até hoje, que é a pergunta
- * de sempre ("como está o mês?").
+ * falta receber, dia a dia. Padrão é hoje ("como foi o dia?").
  *
  * Canceladas ficam fora, como em todo total (§F4).
  */
@@ -15,13 +14,7 @@ class RelatorioController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $de = $this->data($request->query('de')) ?? now()->startOfMonth()->toDateString();
-        $ate = $this->data($request->query('ate')) ?? now()->toDateString();
-
-        // "De 30 até 1" é engano de digitação, não pedido de período vazio.
-        if ($de > $ate) {
-            [$de, $ate] = [$ate, $de];
-        }
+        [$periodo, $de, $ate] = $this->periodo($request);
 
         // ponytail: agrega em PHP, não em SQL — cabe no volume de um pequeno comércio
         // (centenas de vendas/mês). Se o relatório de um ano ficar lento, trocar por GROUP BY.
@@ -44,6 +37,7 @@ class RelatorioController extends Controller
             ]);
 
         return view('relatorio', [
+            'periodo' => $periodo,
             'de' => $de,
             'ate' => $ate,
             'dias' => $dias,

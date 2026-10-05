@@ -74,7 +74,8 @@
 
                 formulario.querySelectorAll('button[type="submit"]').forEach((botao) => {
                     botao.dataset.rotuloOriginal = botao.textContent.trim();
-                    botao.textContent = 'Salvando...';
+                    // Cada botão diz o que está fazendo; "Salvando..." num Arquivar assusta.
+                    botao.textContent = botao.dataset.rotuloEnviando || 'Salvando...';
                     botao.disabled = true;
                 });
             });

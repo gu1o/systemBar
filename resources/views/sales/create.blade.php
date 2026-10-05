@@ -62,7 +62,7 @@
                     </div>
 
                     <div class="flex items-center justify-between border-t pt-8">
-                        <button type="submit" class="bg-brand-700 hover:bg-brand-600 text-white font-bold py-4 px-10 rounded-lg shadow-lg transition-all text-2xl">
+                        <button type="submit" data-rotulo-enviando="Finalizando venda..." class="bg-brand-700 hover:bg-brand-600 text-white font-bold py-4 px-10 rounded-lg shadow-lg transition-all text-2xl">
                             Finalizar Venda
                         </button>
                         <a href="{{ route('sales.index') }}" class="text-gray-600 hover:text-gray-900 font-bold text-lg">

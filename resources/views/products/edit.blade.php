@@ -109,7 +109,7 @@
                             Cancelar
                         </a>
 
-                        <x-button-submit>
+                        <x-button-submit data-rotulo-enviando="Atualizando...">
                             Atualizar Produto
                         </x-button-submit>
                     </div>

@@ -45,7 +45,7 @@
                             class="text-gray-600 hover:text-red-500 font-bold text-lg transition-colors duration-300">
                             Cancelar
                         </a>
-                        <x-button-submit>
+                        <x-button-submit data-rotulo-enviando="Atualizando...">
                             Atualizar Cliente
                         </x-button-submit>
                     </div>

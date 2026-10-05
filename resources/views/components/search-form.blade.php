@@ -10,7 +10,7 @@
     </div>
 
     <div class="flex gap-3">
-        <button type="submit"
+        <button type="submit" data-rotulo-enviando="Buscando..."
                 class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-lg bg-brand-700 px-6 py-3 text-lg font-bold text-white transition-colors hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700">
             Buscar
         </button>

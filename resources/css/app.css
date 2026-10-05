@@ -8,7 +8,12 @@
 
 /* Plugins (ordem: forms antes de temas/componentes de UI quando necessário) */
 @plugin "@tailwindcss/forms";
-@plugin "daisyui";
+/* Só o tema claro: o app não tem modo escuro (cores vêm dos tokens abaixo). Com o
+   padrão do DaisyUI, o sistema em modo escuro ativava o tema "dark" e o texto herdado
+   ficava claro — as setas do calendário sumiam, branco sobre branco. */
+@plugin "daisyui" {
+    themes: light --default;
+}
 
 @theme {
     /* Paleta em tokens (§V3). Eram ~40 hex soltos espalhados pelas views; trocar um
@@ -18,6 +23,7 @@
     --color-brand-900: #002366;   /* 14,7:1 sobre branco — barra do topo, títulos */
     --color-brand-700: #0047AB;   /*  8,4:1 com texto branco — ação primária */
     --color-brand-600: #0056D2;   /* hover da primária */
+    --color-brand-100: #dbe7f8;   /* fundo claro: hover das opções do select */
     --color-accent-700: #008080;  /*  4,8:1 com texto branco — ação de cadastro */
     --color-accent-600: #00A0A0;  /* hover do cadastro */
 
@@ -31,6 +37,20 @@
     --color-ink-muted: #4a5568;     /* 7,4:1 — substitui text-gray-500 */
 
     --radius-card: 0.75rem;
+
+    /* Entrada deslizando da esquerda (classe animate-entra). Reinicia sozinha quando o
+       elemento sai de display:none — serve para x-show sem JS extra.
+       Sem fill-mode de propósito: com "both" o transform ficava no elemento depois do
+       fim, e transform em ancestral prende os position:fixed de dentro — o painel do
+       calendário passava a ser cortado pelo card. */
+    --animate-entra: entra 0.3s ease-out;
+
+    @keyframes entra {
+        from {
+            opacity: 0;
+            transform: translateX(-1rem);
+        }
+    }
 
     --font-sans: "Noto Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
         "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -68,6 +88,77 @@
     .btn-brand {
         @apply bg-[#0047AB] hover:bg-[#0056D2] text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all;
     }
+}
+
+/* Lista aberta do <x-select> (appearance: base-select, ligado pelo DaisyUI): a opção
+   escolhida é marcada pela cor da marca em vez do ✓ do navegador. */
+.select option::checkmark {
+    display: none;
+}
+
+.select option:checked {
+    background-color: var(--color-brand-700);
+    color: #fff;
+}
+
+/* Hover (e foco pelo teclado) nas outras opções: o azul clarinho, no lugar do cinza do DaisyUI. */
+.select option:is(:hover, :focus-visible):not(:checked, :disabled) {
+    background-color: var(--color-brand-100);
+}
+
+/* Calendário do <x-date-range>. O .cally do DaisyUI vem com fonte de 0,7rem e a cor
+   primária do tema do DaisyUI: aqui fica no tamanho do app e nas cores da marca.
+   Fora de @layer de propósito, para ganhar dos estilos em camada do DaisyUI.
+   A tabela ocupa a largura toda em colunas iguais (table-layout: fixed) e cada dia
+   preenche a sua célula. Altura de 2,4rem (~43px): alvo de toque. */
+.cally {
+    font-size: 1rem;
+}
+
+.cally::part(container) {
+    padding: 0;
+}
+
+/* Botões não herdam a fonte por padrão — sem isto o calendário sai em Arial. */
+.cally::part(button),
+.cally ::part(button) {
+    font: inherit;
+}
+
+/* O mês já aparece no <select> do cabeçalho; o nome repetido em cima da grade sai. */
+.cally calendar-month::part(heading) {
+    display: none;
+}
+
+.cally ::part(table) {
+    table-layout: fixed;
+    inline-size: 100%;
+}
+
+.cally ::part(td) {
+    padding: 0;
+}
+
+.cally ::part(day) {
+    inline-size: 100%;
+    block-size: 2.4rem;
+    font-size: 1rem;
+}
+
+.cally ::part(today) {
+    background: transparent;
+    color: var(--color-brand-700);
+    font-weight: 700;
+    box-shadow: inset 0 0 0 2px var(--color-brand-700);
+}
+
+.cally ::part(selected) {
+    background: var(--color-brand-700);
+    color: #fff;
+}
+
+.cally ::part(disallowed) {
+    opacity: 0.35;
 }
 
 /* Abaixo de sm, tabela vira lista de cartões (§A9).

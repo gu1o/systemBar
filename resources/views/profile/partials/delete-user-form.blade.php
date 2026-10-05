@@ -46,7 +46,7 @@
                     {{ __('Cancelar') }}
                 </x-secondary-button>
 
-                <x-danger-button class="ms-3">
+                <x-danger-button class="ms-3" data-rotulo-enviando="Excluindo conta...">
                     {{ __('Excluir Conta') }}
                 </x-danger-button>
             </div>

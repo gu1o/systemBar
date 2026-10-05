@@ -43,17 +43,33 @@ it('soma vendido, lucro e a receber do período, dia a dia', function () {
         ->assertDontSee('31/08/2026');
 });
 
-it('abre no mês corrente e aceita datas invertidas', function () {
+it('abre em hoje, sem botão de limpar, e aceita datas invertidas', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
 
     $this->travelTo('2026-09-15 10:00');
 
-    $this->get(route('relatorio'))->assertOk()->assertSee('De 01/09/2026 até 15/09/2026');
+    $this->get(route('relatorio'))->assertOk()->assertSee('Hoje — 15/09/2026')->assertDontSee('Limpar filtro');
+    $this->get(route('relatorio', ['periodo' => 'xyz']))->assertSee('Hoje — 15/09/2026');
     $this->get(route('relatorio', ['de' => '2026-09-10', 'ate' => '2026-09-01']))
         ->assertSee('De 01/09/2026 até 10/09/2026');
     $this->get(route('relatorio'))->assertSee('Nenhuma venda neste período.');
 });
+
+it('calcula os períodos prontos na data de hoje e mostra o botão de limpar', function (string $periodo, string $esperado) {
+    $this->actingAs(User::factory()->create());
+    $this->travelTo('2026-03-31 10:00');
+
+    $this->get(route('relatorio', ['periodo' => $periodo, 'de' => '2020-01-01', 'ate' => '2020-01-02']))
+        ->assertOk()
+        ->assertSee($esperado)
+        ->assertSee('Limpar filtro');
+})->with([
+    'últimos 7 dias' => ['7dias', 'Últimos 7 dias — de 25/03/2026 até 31/03/2026'],
+    'este mês' => ['mes', 'Este mês — de 01/03/2026 até 31/03/2026'],
+    'mês passado (fevereiro, sem estourar para março)' => ['mes-passado', 'Mês passado — de 01/02/2026 até 28/02/2026'],
+    'personalizado' => ['personalizado', 'De 01/01/2020 até 02/01/2020'],
+]);
 
 it('não mostra venda de outro comércio', function () {
     $vizinho = User::factory()->create();

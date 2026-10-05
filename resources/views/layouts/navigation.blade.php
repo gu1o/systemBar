@@ -117,7 +117,7 @@
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button
-                                type="submit"
+                                type="submit" data-rotulo-enviando="Saindo..."
                                 class="block w-full cursor-pointer px-4 py-3 text-left text-base font-semibold text-red-300 hover:bg-white/5 focus-visible:bg-white/5 focus-visible:outline-hidden"
                             >
                                 {{ __('Sair do Sistema') }}
@@ -171,7 +171,7 @@
                  só existia dentro do dropdown de perfil (§A11). --}}
             <form method="POST" action="{{ route('logout') }}" class="border-t border-white/10 pt-2 mt-2">
                 @csrf
-                <button type="submit"
+                <button type="submit" data-rotulo-enviando="Saindo..."
                         class="block w-full cursor-pointer rounded-md px-3 py-3 text-left text-lg font-bold text-red-300 hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300">
                     {{ __('Sair do Sistema') }}
                 </button>

@@ -151,8 +151,61 @@ it('filtra as compras por período', function () {
         ->assertSee('Joao da Silva')
         ->assertDontSee('Maria Souza');
 
-    // Data impossível é ignorada, não quebra a tela.
-    $this->get(route('sales.index', ['de' => '2026-02-31']))->assertOk()->assertSee('Maria Souza');
+    // Data impossível não quebra a tela: vira hoje, nunca "sem limite".
+    $this->get(route('sales.index', ['de' => '2026-02-31']))->assertOk()->assertDontSee('Maria Souza');
+});
+
+it('lembra o período das compras entre as abas e o limpar volta para hoje', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $maria = Customer::factory()->recycle($user)->create(['name' => 'Maria Souza']);
+    $this->travelTo('2026-09-02 10:00');
+    $user->sales()->create(['customer_id' => $maria->id, 'total_amount' => 10, 'status' => 'pending']);
+    $this->travelTo('2026-10-05 10:00');
+
+    $this->get(route('sales.index', ['periodo' => 'personalizado', 'de' => '2026-09-01', 'ate' => '2026-09-03']))
+        ->assertSee('Maria Souza');
+
+    // Trocar de aba (ou voltar pelo menu) chega sem ?periodo: reabre o personalizado.
+    $this->get(route('sales.index', ['situacao' => 'pending']))
+        ->assertSee('Maria Souza')
+        ->assertSee('De 01/09/2026 até 03/09/2026');
+    $this->get(route('sales.index'))->assertSee('Maria Souza');
+
+    // Limpar manda ?periodo=hoje e passa a ser o lembrado.
+    $this->get(route('sales.index', ['periodo' => 'hoje']))->assertDontSee('Maria Souza');
+    $this->get(route('sales.index'))->assertDontSee('Maria Souza')->assertSee('Hoje — 05/10/2026');
+});
+
+it('abre as compras em hoje e filtra por período pronto', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $maria = Customer::factory()->recycle($user)->create(['name' => 'Maria Souza']);
+    $joao = Customer::factory()->recycle($user)->create(['name' => 'Joao da Silva']);
+
+    $this->travelTo('2026-08-20 20:00');
+    $user->sales()->create(['customer_id' => $maria->id, 'total_amount' => 10, 'status' => 'pending']);
+    $this->travelTo('2026-09-10 09:00');
+    $user->sales()->create(['customer_id' => $joao->id, 'total_amount' => 10, 'status' => 'pending']);
+
+    // Padrão: só hoje (nunca a tabela inteira), sem botão de limpar. Fora do
+    // padrão (?periodo=xyz) também cai em hoje.
+    $this->get(route('sales.index'))->assertSee('Joao da Silva')->assertDontSee('Maria Souza')->assertDontSee('Limpar filtro');
+    $this->get(route('sales.index', ['periodo' => 'todas']))->assertDontSee('Maria Souza');
+    $this->travelTo('2026-09-11 09:00');
+    $this->get(route('sales.index'))->assertSee('Nenhuma compra hoje.');
+
+    $this->get(route('sales.index', ['periodo' => 'mes']))
+        ->assertSee('Joao da Silva')->assertDontSee('Maria Souza')->assertSee('Limpar filtro');
+
+    $this->get(route('sales.index', ['periodo' => 'mes-passado']))
+        ->assertSee('Maria Souza')->assertDontSee('Joao da Silva');
+
+    // O "Limpar filtro" mantém a situação escolhida.
+    $this->get(route('sales.index', ['periodo' => 'hoje', 'situacao' => 'pending']))
+        ->assertSee(route('sales.index', ['situacao' => 'pending']), false);
 });
 
 // §B3 — o aviso de arquivar diz quantas compras o cliente tem antes de a pessoa confirmar.

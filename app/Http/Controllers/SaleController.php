@@ -14,21 +14,30 @@ class SaleController extends Controller
     {
         $situacao = $request->query('situacao');
 
-        // Data inválida é ignorada em vez de virar erro: é filtro, não formulário.
-        $de = $this->data($request->query('de'));
-        $ate = $this->data($request->query('ate'));
+        // O período fica lembrado na sessão: abas, menu, "Voltar" dos detalhes e o
+        // redirect depois de registrar venda chegam aqui sem ?periodo e reabrem o
+        // último aplicado (o personalizado principalmente, que dá trabalho refazer).
+        // "Limpar filtro" manda ?periodo=hoje de propósito, para não reabrir o lembrado.
+        if (! $request->hasAny(['periodo', 'de', 'ate'])) {
+            $request->query->add($request->session()->get('vendas.periodo', []));
+        }
+
+        // Padrão hoje; sempre com as duas pontas, nunca a tabela inteira.
+        [$periodo, $de, $ate] = $this->periodo($request);
+        $request->session()->put('vendas.periodo',
+            $periodo === 'personalizado' ? compact('periodo', 'de', 'ate') : compact('periodo'));
 
         $sales = auth()->user()->sales()
             ->with(['customer'])
             ->when(in_array($situacao, ['pending', 'paid', 'cancelled'], true),
                 fn ($query) => $query->where('status', $situacao))
-            ->when($de, fn ($query) => $query->whereDate('created_at', '>=', $de))
-            ->when($ate, fn ($query) => $query->whereDate('created_at', '<=', $ate))
+            ->whereDate('created_at', '>=', $de)
+            ->whereDate('created_at', '<=', $ate)
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
-        return view('sales.index', compact('sales', 'situacao', 'de', 'ate'));
+        return view('sales.index', compact('sales', 'situacao', 'periodo', 'de', 'ate'));
     }
 
     public function create()

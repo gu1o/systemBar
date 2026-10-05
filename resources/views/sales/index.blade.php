@@ -17,7 +17,7 @@
                 <div class="mb-6 flex flex-wrap gap-3" role="group" aria-label="Filtrar compras por situação">
                     @foreach ([null => 'Todas', 'pending' => 'Pendentes', 'paid' => 'Pagas', 'cancelled' => 'Canceladas'] as $valor => $rotulo)
                         @php $ativo = $situacao === ($valor ?: null); @endphp
-                        <a href="{{ route('sales.index', array_filter(['situacao' => $valor, 'de' => $de, 'ate' => $ate])) }}"
+                        <a href="{{ route('sales.index', array_filter(['situacao' => $valor])) }}"
                            @if ($ativo) aria-current="true" @endif
                            class="inline-flex min-h-11 items-center rounded-lg border-2 px-5 py-3 text-base font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 {{ $ativo ? 'border-brand-700 bg-brand-700 text-white' : 'border-edge text-ink hover:bg-gray-100' }}">
                             {{ $rotulo }}
@@ -25,36 +25,14 @@
                     @endforeach
                 </div>
 
-                {{-- Período: sem padrão pré-escolhido — vazio é "todas as datas", como antes. --}}
-                <form action="{{ route('sales.index') }}" method="GET" class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end">
+                {{-- Período: padrão hoje, lembrado na sessão (as abas acima não precisam repassá-lo).
+                     Limpar manda ?periodo=hoje para não reabrir o período lembrado. --}}
+                <x-filtro-periodo :action="route('sales.index')" :limpar="route('sales.index', array_filter(['situacao' => $situacao, 'periodo' => 'hoje']))"
+                                  :periodo="$periodo" :de="$de" :ate="$ate" class="mb-6">
                     @if ($situacao)
                         <input type="hidden" name="situacao" value="{{ $situacao }}">
                     @endif
-
-                    <div>
-                        <label for="de" class="block text-lg font-bold text-ink mb-1">De</label>
-                        <input type="date" name="de" id="de" value="{{ $de }}" class="w-full rounded border px-4 py-3 text-lg">
-                    </div>
-
-                    <div>
-                        <label for="ate" class="block text-lg font-bold text-ink mb-1">Até</label>
-                        <input type="date" name="ate" id="ate" value="{{ $ate }}" class="w-full rounded border px-4 py-3 text-lg">
-                    </div>
-
-                    <div class="flex gap-3">
-                        <button type="submit"
-                                class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-lg bg-brand-700 px-6 py-3 text-lg font-bold text-white transition-colors hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700">
-                            Filtrar
-                        </button>
-
-                        @if ($de || $ate)
-                            <a href="{{ route('sales.index', array_filter(['situacao' => $situacao])) }}"
-                               class="inline-flex min-h-11 items-center justify-center rounded-lg border-2 border-gray-400 px-6 py-3 text-lg font-bold text-gray-700 transition-colors hover:bg-gray-100">
-                                Limpar datas
-                            </a>
-                        @endif
-                    </div>
-                </form>
+                </x-filtro-periodo>
 
                     <table class="tabela-cartoes min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
@@ -102,7 +80,7 @@
                                                 @method('PATCH')
                                                 <input type="hidden" name="status" value="paid">
 
-                                                <button type="submit"
+                                                <button type="submit" data-rotulo-enviando="Registrando pagamento..."
                                                     class="inline-flex min-h-11 cursor-pointer items-center rounded-lg border-2 border-green-700 px-5 py-3 text-base font-bold text-green-800 transition-colors hover:bg-green-700 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-700"
                                                     onclick="return confirm('Marcar como paga a compra de ' + @js($sale->customer?->name ?? 'cliente removido') + ' no valor de R$ {{ number_format($sale->total_amount, 2, ',', '.') }}?')">
                                                     Marcar como Pago
@@ -123,13 +101,18 @@
                             @empty
                                 <tr>
                                     <td colspan="5">
-                                        @if ($situacao || $de || $ate)
-                                            <x-empty-state :acao="route('sales.index')" rotulo="Ver todas as compras">
+                                        {{-- A lista é sempre de um período; só consulta "já vendeu alguma vez?" quando vem vazia. --}}
+                                        @if (! auth()->user()->sales()->exists())
+                                            <x-empty-state :acao="route('sales.create')" rotulo="Registrar minha primeira venda">
+                                                Nenhuma compra registrada ainda. Cada venda registrada aqui baixa o estoque sozinha.
+                                            </x-empty-state>
+                                        @elseif ($situacao || $periodo !== 'hoje')
+                                            <x-empty-state :acao="route('sales.index', ['periodo' => 'hoje'])" rotulo="Limpar filtros">
                                                 Nenhuma compra com esse filtro.
                                             </x-empty-state>
                                         @else
-                                            <x-empty-state :acao="route('sales.create')" rotulo="Registrar minha primeira venda">
-                                                Nenhuma compra registrada ainda. Cada venda registrada aqui baixa o estoque sozinha.
+                                            <x-empty-state :acao="route('sales.create')" rotulo="Registrar uma venda">
+                                                Nenhuma compra hoje.
                                             </x-empty-state>
                                         @endif
                                     </td>

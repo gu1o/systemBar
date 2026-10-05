@@ -10,31 +10,8 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <x-card>
-                <form action="{{ route('relatorio') }}" method="GET" class="flex flex-col gap-3 sm:flex-row sm:items-end nao-imprimir">
-                    <div>
-                        <label for="de" class="block text-lg font-bold text-ink mb-1">De</label>
-                        <input type="date" name="de" id="de" value="{{ $de }}" class="w-full rounded border px-4 py-3 text-lg">
-                    </div>
-
-                    <div>
-                        <label for="ate" class="block text-lg font-bold text-ink mb-1">Até</label>
-                        <input type="date" name="ate" id="ate" value="{{ $ate }}" class="w-full rounded border px-4 py-3 text-lg">
-                    </div>
-
-                    <button type="submit"
-                            class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-lg bg-brand-700 px-6 py-3 text-lg font-bold text-white transition-colors hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700">
-                        Ver período
-                    </button>
-                </form>
-
-                {{-- O período por extenso: confirma o que está na tela sem ler dois campos de data. --}}
-                <p class="mt-4 text-xl font-bold text-ink">
-                    @if ($de === $ate)
-                        Dia {{ \Illuminate\Support\Carbon::parse($de)->format('d/m/Y') }}
-                    @else
-                        De {{ \Illuminate\Support\Carbon::parse($de)->format('d/m/Y') }} até {{ \Illuminate\Support\Carbon::parse($ate)->format('d/m/Y') }}
-                    @endif
-                </p>
+                <x-filtro-periodo :action="route('relatorio')" :limpar="route('relatorio')"
+                                  :periodo="$periodo" :de="$de" :ate="$ate" />
             </x-card>
 
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">

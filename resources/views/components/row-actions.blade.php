@@ -39,7 +39,7 @@
             <form action="{{ $excluir }}" method="POST">
                 @csrf
                 @method('DELETE')
-                <button type="submit"
+                <button type="submit" data-rotulo-enviando="Arquivando..."
                         class="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-lg bg-red-700 px-6 py-3 text-lg font-bold text-white transition-colors hover:bg-red-800">
                     Arquivar
                 </button>
