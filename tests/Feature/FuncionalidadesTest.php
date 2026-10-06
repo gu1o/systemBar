@@ -129,6 +129,53 @@ it('filtra as compras por situação', function () {
         ->assertDontSee('Joao da Silva');
 });
 
+it('busca as compras pelo nome do cliente', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $maria = Customer::factory()->recycle($user)->create(['name' => 'Maria Souza']);
+    $joao = Customer::factory()->recycle($user)->create(['name' => 'Joao da Silva']);
+
+    $user->sales()->create(['customer_id' => $maria->id, 'total_amount' => 10, 'status' => 'pending']);
+    $user->sales()->create(['customer_id' => $joao->id, 'total_amount' => 10, 'status' => 'pending']);
+
+    $this->get(route('sales.index', ['busca' => ' mar ']))
+        ->assertSee('Maria Souza')
+        ->assertDontSee('Joao da Silva');
+
+    $this->get(route('sales.index', ['busca' => 'Pedro']))->assertSee('Nenhuma compra com esse filtro.');
+});
+
+it('filtra as compras sem recarregar a página', function () {
+    $this->travelTo('2026-09-15 10:00'); // meio do mês: "este mês" com duas datas no resumo
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $maria = Customer::factory()->recycle($user)->create(['name' => 'Maria Souza']);
+    $joao = Customer::factory()->recycle($user)->create(['name' => 'Joao da Silva']);
+
+    $user->sales()->create(['customer_id' => $maria->id, 'total_amount' => 10, 'status' => 'pending']);
+    $user->sales()->create(['customer_id' => $joao->id, 'total_amount' => 10, 'status' => 'paid']);
+
+    \Livewire\Livewire::test(\App\Livewire\Vendas::class)
+        ->assertSee('2 compras encontradas')
+        ->set('busca', 'mar')
+        ->assertSee('Maria Souza')->assertDontSee('Joao da Silva')
+        ->call('buscar', '')
+        ->set('situacao', 'paid')
+        ->assertSee('Joao da Silva')->assertDontSee('Maria Souza')
+        ->assertSee('1 compra encontrada')
+        // As propriedades de/ate ficam vazias fora do personalizado; o resumo não pode usá-las.
+        ->set('periodo', 'mes')
+        ->assertSee('Este mês — de '.today()->startOfMonth()->format('d/m/Y'))
+        // Personalizado começa no intervalo que estava na tela; "Limpar filtro" volta para hoje.
+        ->set('periodo', 'personalizado')
+        ->assertSet('de', today()->startOfMonth()->toDateString())
+        ->call('limparPeriodo')
+        ->assertSet('periodo', 'hoje')
+        ->assertSet('de', '');
+});
+
 it('filtra as compras por período', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
@@ -190,20 +237,20 @@ it('abre as compras em hoje e filtra por período pronto', function () {
     $this->travelTo('2026-09-10 09:00');
     $user->sales()->create(['customer_id' => $joao->id, 'total_amount' => 10, 'status' => 'pending']);
 
-    // Padrão: só hoje (nunca a tabela inteira), sem botão de limpar. Fora do
+    // Padrão: só hoje (nunca a tabela inteira). Fora do
     // padrão (?periodo=xyz) também cai em hoje.
-    $this->get(route('sales.index'))->assertSee('Joao da Silva')->assertDontSee('Maria Souza')->assertDontSee('Limpar filtro');
+    $this->get(route('sales.index'))->assertSee('Joao da Silva')->assertDontSee('Maria Souza');
     $this->get(route('sales.index', ['periodo' => 'todas']))->assertDontSee('Maria Souza');
     $this->travelTo('2026-09-11 09:00');
     $this->get(route('sales.index'))->assertSee('Nenhuma compra hoje.');
 
     $this->get(route('sales.index', ['periodo' => 'mes']))
-        ->assertSee('Joao da Silva')->assertDontSee('Maria Souza')->assertSee('Limpar filtro');
+        ->assertSee('Joao da Silva')->assertDontSee('Maria Souza');
 
     $this->get(route('sales.index', ['periodo' => 'mes-passado']))
         ->assertSee('Maria Souza')->assertDontSee('Joao da Silva');
 
-    // O "Limpar filtro" mantém a situação escolhida.
+    // As abas são links de verdade (abrir em nova aba funciona).
     $this->get(route('sales.index', ['periodo' => 'hoje', 'situacao' => 'pending']))
         ->assertSee(route('sales.index', ['situacao' => 'pending']), false);
 });

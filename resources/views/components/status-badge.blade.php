@@ -10,6 +10,6 @@
     ][$cor];
 @endphp
 
-<span {{ $attributes->merge(['class' => "inline-flex items-center rounded-full px-4 py-2 text-base font-bold {$cores}"]) }}>
+<span {{ $attributes->merge(['class' => "inline-flex items-center rounded-lg px-4 py-2 text-base font-bold {$cores}"]) }}>
     {{ $slot }}
 </span>

@@ -2,6 +2,8 @@
     Paginação (§A2). A view padrão do Laravel tem alvos pequenos e lista o número de
     todas as páginas. Aqui: dois botões de 44px e a posição dita por extenso —
     "Página 2 de 6" responde a pergunta que o usuário realmente tem.
+    Com ['livewire' => true] os links trocam de página sem recarregar (continuam
+    links: abrir em nova aba funciona).
 --}}
 @if ($paginator->hasPages())
     <nav role="navigation" aria-label="Navegação entre páginas"
@@ -17,14 +19,14 @@
                     {!! __('pagination.previous') !!}
                 </span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" rel="prev"
+                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" @isset($livewire) wire:click.prevent="previousPage('{{ $paginator->getPageName() }}')" @endisset
                    class="inline-flex min-h-11 items-center justify-center rounded-lg border-2 border-brand-700 px-6 py-3 text-base font-bold text-brand-700 transition-colors hover:bg-brand-700 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700">
                     {!! __('pagination.previous') !!}
                 </a>
             @endif
 
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" rel="next"
+                <a href="{{ $paginator->nextPageUrl() }}" rel="next" @isset($livewire) wire:click.prevent="nextPage('{{ $paginator->getPageName() }}')" @endisset
                    class="inline-flex min-h-11 items-center justify-center rounded-lg border-2 border-brand-700 px-6 py-3 text-base font-bold text-brand-700 transition-colors hover:bg-brand-700 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700">
                     {!! __('pagination.next') !!}
                 </a>

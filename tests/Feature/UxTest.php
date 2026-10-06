@@ -43,7 +43,7 @@ it('marca como paga só por botão, e só uma vez', function () {
     ]);
 
     $this->get(route('sales.index'))
-        ->assertSee('Marcar como Pago')
+        ->assertSee('Marcar como pago')
         ->assertDontSee('onchange', false);
 
     $this->patch(route('sales.updateStatus', $sale), ['status' => 'paid'])

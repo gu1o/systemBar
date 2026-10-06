@@ -18,6 +18,7 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @livewireScriptConfig
     </head>
     <body class="font-sans antialiased text-ink">
         <a href="#conteudo"
@@ -63,6 +64,12 @@
             // clique — registra duas vendas e baixa o estoque duas vezes (§A7).
             document.addEventListener('submit', (evento) => {
                 const formulario = evento.target;
+
+                // Formulário do Livewire não recarrega a página: travado aqui, ficaria
+                // travado para sempre. Ele tem o próprio aviso (wire:loading).
+                if (formulario.hasAttribute('wire:submit')) {
+                    return;
+                }
 
                 if (formulario.dataset.enviando) {
                     evento.preventDefault();

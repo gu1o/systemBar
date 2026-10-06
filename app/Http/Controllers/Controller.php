@@ -24,7 +24,7 @@ abstract class Controller
      * filtro, não formulário. O ida-e-volta pelo formato recusa 2026-02-31, que o
      * strtotime() aceitaria.
      */
-    protected function data(?string $valor): ?string
+    public static function data(?string $valor): ?string
     {
         $data = \DateTime::createFromFormat('!Y-m-d', (string) $valor);
 
@@ -41,7 +41,7 @@ abstract class Controller
      *
      * @return array{0: string, 1: string, 2: string}
      */
-    protected function periodo(Request $request): array
+    public static function periodo(Request $request): array
     {
         $periodo = $request->query('periodo');
         if (! isset(self::PERIODOS[$periodo])) {
@@ -55,7 +55,7 @@ abstract class Controller
             'mes' => [$hoje->copy()->startOfMonth(), $hoje],
             'mes-passado' => [$hoje->copy()->subMonthNoOverflow()->startOfMonth(), $hoje->copy()->subMonthNoOverflow()->endOfMonth()],
             // Data que faltar (ou inválida) vira hoje: nunca uma consulta sem limite.
-            'personalizado' => [$this->data($request->query('de')) ?? $hoje, $this->data($request->query('ate')) ?? $hoje],
+            'personalizado' => [self::data($request->query('de')) ?? $hoje, self::data($request->query('ate')) ?? $hoje],
         });
 
         // "De 30 até 1" é engano de digitação, não pedido de período vazio.
