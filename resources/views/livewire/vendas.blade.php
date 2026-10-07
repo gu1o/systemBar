@@ -106,8 +106,8 @@
                 <th scope="col" class="px-6 py-4">Data</th>
                 <th scope="col" class="px-6 py-4">Cliente</th>
                 <th scope="col" class="px-6 py-4">Total</th>
-                <th scope="col" class="px-6 py-4">Status e próxima ação</th>
-                <th scope="col" class="px-6 py-4 text-right">Ações</th>
+                <th scope="col" class="px-6 py-4">Situação</th>
+                <th scope="col" class="px-6 py-4 text-right">Detalhes</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-edge">

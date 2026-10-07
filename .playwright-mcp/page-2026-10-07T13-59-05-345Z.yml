@@ -1,0 +1,23 @@
+- generic [ref=e2]:
+  - link "SYSTEM BAR" [ref=e4] [cursor=pointer]:
+    - /url: /
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - heading "Bem-vindo de volta!" [level=2] [ref=e7]
+      - paragraph [ref=e8]: Acesse sua conta para gerenciar seu comércio.
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - generic [ref=e11]: E-mail
+        - textbox "E-mail" [active] [ref=e12]:
+          - /placeholder: "Ex.: joao@gmail.com"
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - generic [ref=e15]: Senha
+          - textbox "Senha" [ref=e16]:
+            - /placeholder: "********"
+        - link "Esqueceu sua senha?" [ref=e17] [cursor=pointer]:
+          - /url: http://localhost:8090/forgot-password
+      - generic [ref=e18]:
+        - button "Entrar no Sistema" [ref=e19]
+        - link "Voltar para o Início" [ref=e20] [cursor=pointer]:
+          - /url: http://localhost:8090

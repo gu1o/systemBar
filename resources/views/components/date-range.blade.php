@@ -79,9 +79,9 @@
     </div>
 
     {{-- Fundo escuro: deixa claro que o painel está por cima e fecha ao tocar fora. --}}
-    <div x-show="aberto" x-cloak @click="aberto = false" class="fixed inset-0 z-30 bg-black/40"></div>
+    <div x-show="aberto" x-cloak x-transition.opacity.duration.300ms @click="aberto = false" class="fixed inset-0 z-30 bg-black/40"></div>
 
-    <div x-show="aberto" x-cloak x-transition.opacity
+    <div x-show="aberto" x-cloak x-transition:enter="painel-entra" x-transition:leave="painel-sai"
          role="dialog" :aria-label="alvo === 'de' ? 'Escolher data inicial' : 'Escolher data final'"
          class="fixed inset-x-0 bottom-0 z-40 max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-t-card border border-edge bg-surface p-4 shadow-xl sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-[24rem] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-card">
         <p class="text-base text-ink-muted" x-text="alvo === 'de' ? 'Escolha a data inicial:' : 'Escolha a data final:'"></p>

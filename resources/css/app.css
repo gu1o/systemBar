@@ -106,6 +106,61 @@
     background-color: var(--color-brand-100);
 }
 
+/* Abrir/fechar do painel do <x-date-range> (classes do x-transition; o Alpine espera
+   o animation-duration). No computador, o painel no centro só aparece/some. No celular
+   ele é gaveta no rodapé: sobe e quica no fim; ao fechar, recua um pouco e desce.
+   "forwards" só na saída: segura o painel fora da tela até o Alpine escondê-lo. */
+.painel-entra {
+    animation: painel-aparece 0.15s ease-out;
+}
+
+.painel-sai {
+    animation: painel-aparece 0.15s ease-in reverse forwards;
+}
+
+@keyframes painel-aparece {
+    from {
+        opacity: 0;
+    }
+}
+
+@media (max-width: 39.99rem) {
+    .painel-entra {
+        animation: painel-sobe 0.45s ease-out;
+    }
+
+    .painel-sai {
+        animation: painel-desce 0.35s ease-in forwards;
+    }
+}
+
+@keyframes painel-sobe {
+    0% {
+        transform: translateY(100%);
+    }
+    70% {
+        transform: translateY(-0.75rem);
+    }
+    85% {
+        transform: translateY(0.25rem);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes painel-desce {
+    0% {
+        transform: translateY(0);
+    }
+    25% {
+        transform: translateY(-0.75rem);
+    }
+    100% {
+        transform: translateY(100%);
+    }
+}
+
 /* Calendário do <x-date-range>. O .cally do DaisyUI vem com fonte de 0,7rem e a cor
    primária do tema do DaisyUI: aqui fica no tamanho do app e nas cores da marca.
    Fora de @layer de propósito, para ganhar dos estilos em camada do DaisyUI.
@@ -167,7 +222,7 @@
    aprendida, a lateral não é descoberta — a coluna "Ações" simplesmente não
    existia para quem não sabe arrastar. Feito em CSS e não duplicando a marcação
    em Blade: um <td data-rotulo="Nome"> serve os dois formatos. */
-@media (max-width: 48rem) {
+@media screen and (max-width: 48rem) {
     .tabela-cartoes thead {
         display: none;
     }
@@ -214,6 +269,25 @@
         width: 100%;
         justify-content: center;
     }
+
+    /* Linha de total: rótulo e valor lado a lado, sem cara de cartão. */
+    .tabela-cartoes tfoot {
+        display: block;
+    }
+
+    .tabela-cartoes tfoot tr {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border: 0;
+        margin: 0;
+    }
+
+    .tabela-cartoes tfoot td {
+        width: auto;
+        white-space: nowrap;
+        padding-inline: 0.5rem;
+    }
 }
 
 /* Quem pediu menos movimento no sistema operacional recebe menos movimento (§A5).
@@ -243,6 +317,16 @@
 
 /* Impressão do comprovante (§A11): sai só o conteúdo, em preto sobre branco. */
 @media print {
+    /* Margem zero some com o cabeçalho/rodapé que o navegador põe (data, título, URL);
+       o comprovante traz o próprio cabeçalho. A margem volta pelo padding do body. */
+    @page {
+        margin: 0;
+    }
+
+    body {
+        padding: 1.5cm 1cm;
+    }
+
     nav,
     header,
     .nao-imprimir {

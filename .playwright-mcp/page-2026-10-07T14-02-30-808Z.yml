@@ -1,0 +1,43 @@
+- generic [active] [ref=f15e1]:
+  - link "Pular para o conteúdo" [ref=f15e2] [cursor=pointer]:
+    - /url: "#conteudo"
+  - generic [ref=f15e3]:
+    - navigation [ref=f15e4]:
+      - generic [ref=f15e6]:
+        - button "Abrir menu principal" [ref=f15e8]
+        - img "System Bar" [ref=f15e15]
+        - button "Abrir menu do usuário A" [ref=f15e18] [cursor=pointer]:
+          - generic [ref=f15e20]: Abrir menu do usuário
+          - generic [ref=f15e21]: A
+    - banner [ref=f15e22]:
+      - generic [ref=f15e24]:
+        - 'heading "Detalhes da Venda #10" [level=2] [ref=f15e25]'
+        - link "Voltar" [ref=f15e26] [cursor=pointer]:
+          - /url: http://localhost:8090/sales
+    - main [ref=f15e27]:
+      - generic [ref=f15e30]:
+        - generic [ref=f15e31]:
+          - generic [ref=f15e32]:
+            - heading "Cliente" [level=3] [ref=f15e33]
+            - paragraph [ref=f15e34]: Pedro Santos
+            - paragraph [ref=f15e35]: "11777777777"
+          - generic [ref=f15e36]:
+            - heading "Data da Venda" [level=3] [ref=f15e37]
+            - paragraph [ref=f15e38]: 07/10/2026 09:41
+            - generic [ref=f15e39]: Pendente
+        - generic [ref=f15e40]:
+          - heading "Itens da Compra" [level=3] [ref=f15e41]
+          - table [ref=f15e42]:
+            - rowgroup [ref=f15e43]:
+              - row [ref=f15e44]:
+                - cell "Produto Feijão Carioca 1kg" [ref=f15e45]
+                - cell "Qtd 17" [ref=f15e46]
+                - cell "Preço Unit. R$ 8,50" [ref=f15e47]
+                - cell "Subtotal R$ 144,50" [ref=f15e48]
+            - rowgroup [ref=f15e49]:
+              - row [ref=f15e50]:
+                - cell "Total Geral:" [ref=f15e51]
+                - cell "R$ 144,50" [ref=f15e52]
+        - generic [ref=f15e53]:
+          - button "Cancelar esta Compra" [ref=f15e55] [cursor=pointer]
+          - button "Imprimir Comprovante" [ref=f15e57]
