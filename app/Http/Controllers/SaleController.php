@@ -33,12 +33,12 @@ class SaleController extends Controller
         $request->validate([
             'customer_id' => [
                 'required',
-                Rule::exists('customers', 'id')->where(fn ($query) => $query->where('user_id', $userId)),
+                Rule::exists('customers', 'id')->where(fn ($query) => $query->where('user_id', $userId))->withoutTrashed(),
             ],
             'items' => 'required|array|min:1',
             'items.*.product_id' => [
                 'required',
-                Rule::exists('products', 'id')->where(fn ($query) => $query->where('user_id', $userId)),
+                Rule::exists('products', 'id')->where(fn ($query) => $query->where('user_id', $userId))->withoutTrashed(),
             ],
             'items.*.quantity' => 'required|integer|min:1',
         ]);

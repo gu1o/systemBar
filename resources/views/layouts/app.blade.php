@@ -79,7 +79,9 @@
                 formulario.dataset.enviando = '1';
                 formulario.setAttribute('aria-busy', 'true');
 
-                formulario.querySelectorAll('button[type="submit"]').forEach((botao) => {
+                // elements, não querySelectorAll: inclui botões de fora ligados por form="id" (barra de ação em lote).
+
+                [...formulario.elements].filter((el) => el.type === 'submit').forEach((botao) => {
                     botao.dataset.rotuloOriginal = botao.textContent.trim();
                     // Cada botão diz o que está fazendo; "Salvando..." num Arquivar assusta.
                     botao.textContent = botao.dataset.rotuloEnviando || 'Salvando...';
@@ -93,7 +95,7 @@
                     delete formulario.dataset.enviando;
                     formulario.removeAttribute('aria-busy');
 
-                    formulario.querySelectorAll('button[type="submit"]').forEach((botao) => {
+                    [...formulario.elements].filter((el) => el.type === 'submit').forEach((botao) => {
                         if (botao.dataset.rotuloOriginal) {
                             botao.textContent = botao.dataset.rotuloOriginal;
                         }

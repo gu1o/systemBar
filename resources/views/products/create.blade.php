@@ -7,9 +7,9 @@
 
     <x-currency-mask />
 
-    <div class="py-12">
+    <div class="py-6 sm:py-12">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <x-card padding="p-8">
+            <x-card padding="p-5 sm:p-8">
                 <form action="{{ route('products.store') }}" method="POST">
                     @csrf
 
@@ -48,9 +48,9 @@
                                     class="pointer-events-none invisible absolute left-0 right-0 top-full z-10 mt-1 rounded-lg border border-gray-200 bg-white p-3 text-base text-gray-700 shadow-md opacity-0 transition-[opacity,visibility] duration-150 peer-checked:pointer-events-auto peer-checked:visible peer-checked:opacity-100">
                                     {{ __('Informe o valor que você paga pelo produto ou valor de custo para fabricação em casos de produtos caseiros. Use o mesmo formato do caixa (ex.: 12,50).
                                     ') . ' ' . __('Campo não obrigatório.') }}
-                                <p class="mt-1 text-base text-gray-600">Digite só os números: 1234 vira 12,34.</p>
-                        </div>
+                                </div>
                             </div>
+                            <p class="mt-1 text-base text-gray-600">Digite só os números: 1234 vira 12,34.</p>
                         </div>
                         <div>
                             <label for="sale_price" class="block text-gray-700 text-xl font-bold mb-2">Preço de Venda
@@ -92,12 +92,13 @@
                         </p>
                     </div>
 
-                    <div class="flex items-center justify-between">
+                    {{-- Celular: Salvar em largura total e Cancelar embaixo, longe do dedo. --}}
+                    <div class="flex flex-col-reverse gap-3 border-t border-edge pt-6 sm:flex-row sm:items-center sm:justify-between sm:pt-8">
                         <a href="{{ route('products.index') }}"
-                            class="text-gray-600 hover:text-red-500 font-bold text-lg transition-colors duration-300">
+                            class="inline-flex min-h-11 items-center justify-center text-gray-600 hover:text-red-500 font-bold text-lg transition-colors duration-300">
                             Cancelar
                         </a>
-                        <x-button-submit>
+                        <x-button-submit class="w-full sm:w-auto">
                             Salvar Produto
                         </x-button-submit>
                     </div>

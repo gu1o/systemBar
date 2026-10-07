@@ -23,6 +23,13 @@ Route::middleware('auth')->group(function () {
 
     // Rotas de Produtos — sem show(): o controller não tem o método, e a rota
     // registrada respondia 500 em vez de 404 (§B9).
+    Route::get('/products/arquivados', [ProductController::class, 'arquivados'])->name('products.arquivados');
+    // Em lote — antes do resource: senão o DELETE cai em destroy() com {product} = "selecionados".
+    Route::delete('/products/selecionados', [ProductController::class, 'arquivarSelecionados'])->name('products.arquivarSelecionados');
+    Route::patch('/products/selecionados/restaurar', [ProductController::class, 'restaurarSelecionados'])->name('products.restaurarSelecionados');
+    Route::patch('/products/{product}/restaurar', [ProductController::class, 'restaurar'])
+    ->withTrashed()
+    ->name('products.restaurar');
     Route::resource('products', ProductController::class)->except('show');
 
     // Rotas de Vendas (Registro de Compras) — venda não se edita nem se exclui;

@@ -68,3 +68,98 @@ it('mostra "Cliente removido" quando a venda está sem cliente', function () {
     $this->get(route('sales.index'))->assertOk()->assertSee('Cliente removido');
     $this->get(route('sales.show', $sale))->assertOk()->assertSee('Cliente removido');
 });
+
+// Formulário aberto em outra aba enquanto o produto/cliente é arquivado: o exists
+// sem withoutTrashed deixava passar, e o findMany sem o produto dava 500.
+it('recusa a venda com produto ou cliente arquivado, sem erro 500', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $customer = Customer::factory()->recycle($user)->create();
+    $product = Product::factory()->recycle($user)->create(['stock_quantity' => 10]);
+    $product->delete();
+
+    $this->post(route('sales.store'), [
+        'customer_id' => $customer->id,
+        'items' => [['product_id' => $product->id, 'quantity' => 1]],
+    ])->assertSessionHasErrors('items.0.product_id');
+
+    $product->restore();
+    $customer->delete();
+
+    $this->post(route('sales.store'), [
+        'customer_id' => $customer->id,
+        'items' => [['product_id' => $product->id, 'quantity' => 1]],
+    ])->assertSessionHasErrors('customer_id');
+
+    expect($user->sales()->count())->toBe(0);
+});
+
+it('lista os produtos arquivados e restaura', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $ativo = Product::factory()->recycle($user)->create(['name' => 'Guaraná Lata']);
+    $arquivado = Product::factory()->recycle($user)->create(['name' => 'Coca Cola 2L']);
+    $arquivado->delete();
+
+    $this->get(route('products.index'))->assertSee(route('products.arquivados'));
+    $this->get(route('products.arquivados'))->assertOk()
+        ->assertSee('Coca Cola 2L')->assertDontSee('Guaraná Lata');
+
+    $this->patch(route('products.restaurar', $arquivado))->assertRedirect(route('products.arquivados'));
+
+    expect($arquivado->fresh()->trashed())->toBeFalse();
+    $this->get(route('products.index'))->assertSee('Coca Cola 2L');
+});
+
+it('não deixa ver nem restaurar arquivado de outro comércio', function () {
+    $dono = User::factory()->create();
+    $produto = Product::factory()->recycle($dono)->create(['name' => 'Produto do Vizinho']);
+    $produto->delete();
+
+    $this->actingAs(User::factory()->create());
+
+    $this->get(route('products.arquivados'))->assertOk()->assertDontSee('Produto do Vizinho');
+    // 404: o escopo ScopedToUser nem deixa o produto do outro comércio ser encontrado.
+    $this->patch(route('products.restaurar', $produto))->assertNotFound();
+    expect($produto->fresh()->trashed())->toBeTrue();
+});
+
+it('arquiva e restaura vários produtos de uma vez, só os do próprio comércio', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    [$a, $b, $c] = Product::factory()->recycle($user)->count(3)->create();
+    $doVizinho = Product::factory()->recycle(User::factory()->create())->create();
+
+    $this->delete(route('products.arquivarSelecionados'), ['ids' => [$a->id, $b->id, $doVizinho->id]])
+        ->assertRedirect(route('products.index'))
+        ->assertSessionHas('success', fn ($msg) => str_starts_with($msg, '2 produtos arquivados'));
+
+    expect($a->fresh()->trashed())->toBeTrue()
+        ->and($b->fresh()->trashed())->toBeTrue()
+        ->and($c->fresh()->trashed())->toBeFalse()
+        ->and(Product::withoutGlobalScopes()->find($doVizinho->id)->trashed())->toBeFalse();
+
+    $this->patch(route('products.restaurarSelecionados'), ['ids' => [$a->id, $b->id]])
+        ->assertRedirect(route('products.arquivados'));
+
+    expect($a->fresh()->trashed())->toBeFalse()->and($b->fresh()->trashed())->toBeFalse();
+
+    $this->delete(route('products.arquivarSelecionados'), ['ids' => []])->assertSessionHasErrors('ids');
+});
+
+it('busca entre os arquivados sem recarregar', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Product::factory()->recycle($user)->create(['name' => 'Cerveja Lata'])->delete();
+    Product::factory()->recycle($user)->create(['name' => 'Detergente'])->delete();
+    Product::factory()->recycle($user)->create(['name' => 'Cerveja Ativa']);
+
+    \Livewire\Livewire::test(\App\Livewire\ProdutosArquivados::class)
+        ->assertSee('Cerveja Lata')->assertSee('Detergente')->assertDontSee('Cerveja Ativa')
+        ->set('busca', 'Cerveja')
+        ->assertSee('Cerveja Lata')->assertDontSee('Detergente')->assertDontSee('Cerveja Ativa');
+});

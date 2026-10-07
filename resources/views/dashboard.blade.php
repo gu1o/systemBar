@@ -112,7 +112,7 @@
                             </p>
                         @endif
                     </div>
-                    <a href="{{ route('products.index') }}" class="{{ $botaoSuave }}">
+                    <a href="{{ route('products.index', $estoqueBaixo > 0 ? ['status' => 'baixo'] : []) }}" class="{{ $botaoSuave }}">
                         {{ $estoqueBaixo > 0 ? 'Repor estoque' : 'Ver estoque' }} <x-elemplus-right class="size-5" aria-hidden="true" />
                     </a>
                 </x-card>

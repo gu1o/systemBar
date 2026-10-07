@@ -11,17 +11,10 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    // Lista, busca e filtro ficam no componente Livewire (app/Livewire/Produtos.php).
+    public function index()
     {
-        $busca = trim((string) $request->query('busca'));
-
-        $products = auth()->user()->products()
-            ->when($busca !== '', fn ($query) => $query->where('name', 'like', '%'.$busca.'%'))
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
-
-        return view('products.index', compact('products', 'busca'));
+        return view('products.index');
     }
 
     /**
@@ -81,5 +74,43 @@ class ProductController extends Controller
         // Redireciona de volta para a lista com mensagem de sucesso
         return redirect()->route('products.index')
             ->with('success', 'Produto arquivado. As vendas já registradas continuam completas.');
+    }
+
+    // Produtos arquivados, com o caminho de volta (restaurar). Lista e busca no
+    // componente Livewire (app/Livewire/ProdutosArquivados.php).
+    public function arquivados()
+    {
+        return view('products.arquivados');
+    }
+
+    // Em lote: parte de $user->products(), então id de outro comércio é só ignorado.
+    public function arquivarSelecionados(Request $request)
+    {
+        $ids = $request->validate(['ids' => 'required|array', 'ids.*' => 'integer'])['ids'];
+
+        $total = $request->user()->products()->whereKey($ids)->delete();
+
+        return redirect()->route('products.index')
+            ->with('success', ($total === 1 ? '1 produto arquivado.' : "{$total} produtos arquivados.").' As vendas já registradas continuam completas.');
+    }
+
+    public function restaurarSelecionados(Request $request)
+    {
+        $ids = $request->validate(['ids' => 'required|array', 'ids.*' => 'integer'])['ids'];
+
+        $total = $request->user()->products()->onlyTrashed()->whereKey($ids)->restore();
+
+        return redirect()->route('products.arquivados')
+            ->with('success', ($total === 1 ? '1 produto restaurado.' : "{$total} produtos restaurados.").' Já aparecem na lista e no registro de vendas.');
+    }
+
+    public function restaurar(Request $request, Product $product)
+    {
+        abort_unless($product->user_id === $request->user()->id, 403);
+
+        $product->restore();
+
+        return redirect()->route('products.arquivados')
+            ->with('success', "Produto {$product->name} restaurado. Ele voltou para a lista e para o registro de vendas.");
     }
 }

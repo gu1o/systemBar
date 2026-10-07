@@ -79,7 +79,8 @@ it('usa o limiar de estoque escolhido pelo dono, não o 5 fixo', function () {
         'name' => 'Cerveja Lata', 'stock_quantity' => 8, 'stock_alert' => 12,
     ]);
 
-    $this->get(route('products.index'))->assertSee('Baixo Estoque');
+    // Pelo filtro de status: o texto "Baixo Estoque" também é o rótulo da aba.
+    $this->get(route('products.index', ['status' => 'baixo']))->assertSee('Cerveja Lata');
     $this->get(route('products.create'))->assertSee('Avisar quando o estoque chegar em');
 
     $this->patch(route('products.update', $user->products()->sole()), [
@@ -87,7 +88,7 @@ it('usa o limiar de estoque escolhido pelo dono, não o 5 fixo', function () {
     ])->assertRedirect(route('products.index'));
 
     expect($user->products()->sole()->stock_alert)->toBe(3);
-    $this->get(route('products.index'))->assertDontSee('Baixo Estoque');
+    $this->get(route('products.index', ['status' => 'baixo']))->assertDontSee('Cerveja Lata');
 });
 
 // §F3 — sem busca, quem tem 60 produtos navega 6 páginas para achar um.
@@ -265,4 +266,36 @@ it('avisa quantas compras o cliente tem antes de arquivar', function () {
     $user->sales()->create(['customer_id' => $maria->id, 'total_amount' => 10, 'status' => 'paid']);
 
     $this->get(route('customers.index'))->assertSee('Este cliente tem 2 compras registradas.');
+});
+
+it('filtra produtos pelo status do estoque, somando com a busca', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Product::factory()->recycle($user)->create(['name' => 'Cerveja Lata', 'stock_quantity' => 2, 'stock_alert' => 5]);
+    Product::factory()->recycle($user)->create(['name' => 'Cerveja Garrafa', 'stock_quantity' => 50, 'stock_alert' => 5]);
+    Product::factory()->recycle($user)->create(['name' => 'Detergente', 'stock_quantity' => 5, 'stock_alert' => 5]);
+
+    $this->get(route('products.index', ['status' => 'baixo']))->assertOk()
+        ->assertSee('Cerveja Lata')->assertSee('Detergente')->assertDontSee('Cerveja Garrafa');
+
+    $this->get(route('products.index', ['status' => 'normal']))->assertOk()
+        ->assertSee('Cerveja Garrafa')->assertDontSee('Cerveja Lata')->assertDontSee('Detergente');
+
+    $this->get(route('products.index', ['status' => 'baixo', 'busca' => 'Cerveja']))
+        ->assertSee('Cerveja Lata')->assertDontSee('Detergente')->assertDontSee('Cerveja Garrafa');
+
+    // Sem recarregar (Livewire): trocar a aba mantém a busca, e vice-versa.
+    \Livewire\Livewire::test(\App\Livewire\Produtos::class)
+        ->set('busca', 'Cerveja')
+        ->assertSee('Cerveja Lata')->assertSee('Cerveja Garrafa')->assertDontSee('Detergente')
+        ->set('status', 'normal')
+        ->assertSee('Cerveja Garrafa')->assertDontSee('Cerveja Lata')
+        ->call('buscar', '  Detergente ')
+        ->assertSet('busca', 'Detergente')
+        ->assertSee('no nome está com estoque normal.');
+
+    // Valor desconhecido = sem filtro.
+    $this->get(route('products.index', ['status' => 'xyz']))->assertOk()
+        ->assertSee('Cerveja Lata')->assertSee('Cerveja Garrafa');
 });

@@ -8,16 +8,19 @@
 {{-- Ações de uma linha da lista (§V4). A confirmação deixou de ser o confirm()
      nativo — diálogo minúsculo, sem estilo, com "OK/Cancelar" — e passou a usar o
      x-modal que já existia no projeto: foco preso, ESC, e botões que dizem o que
-     fazem ("Arquivar" / "Manter", não "OK") (§A6). --}}
-<div class="flex flex-wrap items-center justify-end gap-3">
+     fazem ("Arquivar" / "Manter", não "OK") (§A6).
+     Hover com fundo claro e o texto na mesma cor (como os botões de Vendas). Invertendo
+     (fundo cheio + texto branco), no meio da transição texto e fundo ficavam da mesma
+     cor e o rótulo sumia por um instante — o botão "piscava" ao passar de um para o outro. --}}
+<div class="flex flex-wrap items-center justify-end gap-3 lg:flex-nowrap">
     <a href="{{ $editar }}"
-       class="inline-flex min-h-11 items-center justify-center rounded-lg border-2 border-brand-700 px-5 py-3 text-base font-bold text-brand-700 transition-colors hover:bg-brand-700 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700">
+       class="inline-flex min-h-11 items-center justify-center rounded-lg border-2 border-brand-700 px-4 py-2 text-base font-bold text-brand-700 transition-colors hover:bg-brand-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700">
         Editar
     </a>
 
     <button type="button" x-data=""
             x-on:click="$dispatch('open-modal', '{{ $modal }}')"
-            class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-lg border-2 border-red-700 px-5 py-3 text-base font-bold text-red-700 transition-colors hover:bg-red-700 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700">
+            class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-lg border-2 border-red-700 px-4 py-2 text-base font-bold text-red-700 transition-colors hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700">
         Arquivar
     </button>
 </div>
