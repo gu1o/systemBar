@@ -109,6 +109,12 @@ it('busca produto e cliente pelo nome', function () {
         ->assertSee('Maria Souza')
         ->assertDontSee('Joao da Silva');
 
+    // Busca ao vivo (Livewire), sem recarregar a página.
+    Livewire\Livewire::test(App\Livewire\Clientes::class)
+        ->set('busca', 'joao')
+        ->assertSee('Joao da Silva')
+        ->assertDontSee('Maria Souza');
+
     // Busca sem resultado explica o que houve, sem fingir que o usuário é novo.
     $this->get(route('products.index', ['busca' => 'inexistente']))
         ->assertSee('Nenhum produto com "inexistente" no nome.', false)

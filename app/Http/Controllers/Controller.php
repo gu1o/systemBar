@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 abstract class Controller
 {
     /**
-     * Períodos do filtro <x-filtro-periodo>, na ordem do select; o primeiro é o padrão.
+     * Períodos do filtro de Vendas e Faturamento, na ordem do select; o primeiro é o padrão.
      * Sem "todas as datas" de propósito: toda consulta tem um intervalo fechado.
      */
     public const PERIODOS = [

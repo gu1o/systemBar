@@ -1,5 +1,5 @@
 {{--
-    Campos "De" e "Até" com o calendário Cally (usado pelo <x-filtro-periodo>).
+    Campos "De" e "Até" com o calendário Cally (filtro de período de Vendas e Faturamento).
     Cada campo abre um calendário de um dia só; um limita o outro (De não passa do
     Até, Até não fica antes do De) e datas futuras ficam bloqueadas.
     Mês e ano escolhidos em <select> nativo: no celular abre a roleta do sistema,

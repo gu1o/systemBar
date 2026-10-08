@@ -93,7 +93,7 @@
                         x-on:click="perfil = ! perfil"
                         :aria-expanded="perfil"
                         aria-haspopup="true"
-                        class="relative flex max-w-[12rem] items-center gap-2 rounded-full cursor-pointer border md:pr-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 md:max-w-xs"
+                        class="relative flex max-w-[12rem] items-center gap-2 rounded-full cursor-pointer border border-white/30 md:pr-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 md:max-w-xs"
                     >
                         <span class="absolute -inset-1.5"></span>
                         <span class="sr-only">{{ __('Abrir menu do usuário') }}</span>

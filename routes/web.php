@@ -4,7 +4,6 @@ use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\SaleController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,9 +41,17 @@ Route::middleware('auth')->group(function () {
     Route::patch('/sales/{sale}/cancelar', [SaleController::class, 'cancel'])
     ->name('sales.cancel');
 
+    // Mesmo esquema de Produtos: rotas fixas antes do resource.
+    Route::get('/customers/arquivados', [CustomersController::class, 'arquivados'])->name('customers.arquivados');
+    Route::delete('/customers/selecionados', [CustomersController::class, 'arquivarSelecionados'])->name('customers.arquivarSelecionados');
+    Route::patch('/customers/selecionados/restaurar', [CustomersController::class, 'restaurarSelecionados'])->name('customers.restaurarSelecionados');
+    Route::patch('/customers/{customer}/restaurar', [CustomersController::class, 'restaurar'])
+    ->withTrashed()
+    ->name('customers.restaurar');
     Route::resource('customers', CustomersController::class)->except('show');
 
-    Route::get('/faturamento', RelatorioController::class)->name('relatorio');
+    // Filtro e totais ficam no componente: app/Livewire/Faturamento.php.
+    Route::view('/faturamento', 'relatorio')->name('relatorio');
 });
 
 require __DIR__.'/auth.php';

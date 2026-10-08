@@ -163,3 +163,34 @@ it('busca entre os arquivados sem recarregar', function () {
         ->set('busca', 'Cerveja')
         ->assertSee('Cerveja Lata')->assertDontSee('Detergente')->assertDontSee('Cerveja Ativa');
 });
+
+it('lista os clientes arquivados e restaura, um ou vários, só os do próprio comércio', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Customer::factory()->recycle($user)->create(['name' => 'Maria Ativa']);
+    [$a, $b] = Customer::factory()->recycle($user)->count(2)->create();
+    $doVizinho = Customer::factory()->recycle(User::factory()->create())->create(['name' => 'Cliente do Vizinho']);
+
+    $this->delete(route('customers.arquivarSelecionados'), ['ids' => [$a->id, $b->id, $doVizinho->id]])
+        ->assertRedirect(route('customers.index'))
+        ->assertSessionHas('success', fn ($msg) => str_starts_with($msg, '2 clientes arquivados'));
+
+    expect(Customer::withoutGlobalScopes()->find($doVizinho->id)->trashed())->toBeFalse();
+
+    $this->get(route('customers.index'))->assertSee(route('customers.arquivados'));
+    $this->get(route('customers.arquivados'))->assertOk()
+        ->assertSee($a->name)->assertDontSee('Maria Ativa');
+
+    $this->patch(route('customers.restaurar', $a))->assertRedirect(route('customers.arquivados'));
+    expect($a->fresh()->trashed())->toBeFalse();
+
+    $this->patch(route('customers.restaurarSelecionados'), ['ids' => [$b->id]])->assertRedirect(route('customers.arquivados'));
+    expect($b->fresh()->trashed())->toBeFalse();
+
+    // Arquivado de outro comércio: o escopo nem encontra (404).
+    $doVizinho->delete();
+    $this->patch(route('customers.restaurar', $doVizinho))->assertNotFound();
+
+    \Livewire\Livewire::test(\App\Livewire\ClientesArquivados::class)->assertDontSee('Cliente do Vizinho');
+});

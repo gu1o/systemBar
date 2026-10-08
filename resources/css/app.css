@@ -257,6 +257,11 @@
         color: var(--color-gray-600);
     }
 
+    /* Rótulo colado na borda do botão parece parte dele: 8px separam. */
+    .tabela-cartoes td[data-rotulo="Ações"]::before {
+        margin-bottom: 8px;
+    }
+
     /* Ações em largura total, empilhadas: alvo grande e sem disputa de espaço. */
     .tabela-cartoes td[data-rotulo="Ações"] > div {
         justify-content: stretch;

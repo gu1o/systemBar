@@ -5,9 +5,9 @@
         <x-page-header :titulo="__('Editar Cliente')" />
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-6 sm:py-12">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <x-card padding="p-8">
+            <x-card padding="p-5 sm:p-8">
 
                 <form action="{{ route('customers.update', $customer) }}" method="POST">
                     @csrf
@@ -40,12 +40,12 @@
                             @error('notes') aria-invalid="true" @enderror>{{ old('notes', $customer->notes) }}</textarea>
                     </div>
 
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-col-reverse gap-3 border-t border-edge pt-6 sm:flex-row sm:items-center sm:justify-between sm:pt-8">
                         <a href="{{ route('customers.index') }}"
-                            class="text-gray-600 hover:text-red-500 font-bold text-lg transition-colors duration-300">
+                            class="inline-flex min-h-11 items-center justify-center text-gray-600 hover:text-red-500 font-bold text-lg transition-colors duration-300">
                             Cancelar
                         </a>
-                        <x-button-submit data-rotulo-enviando="Atualizando...">
+                        <x-button-submit class="w-full sm:w-auto" data-rotulo-enviando="Atualizando...">
                             Atualizar Cliente
                         </x-button-submit>
                     </div>

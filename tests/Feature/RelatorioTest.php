@@ -81,3 +81,25 @@ it('não mostra venda de outro comércio', function () {
     $this->actingAs(User::factory()->create());
     $this->get(route('relatorio'))->assertDontSee('R$ 99,00')->assertSee('Nenhuma venda neste período.');
 });
+
+it('troca o período sem recarregar a página', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $customer = Customer::factory()->recycle($user)->create();
+    $product = Product::factory()->recycle($user)->create(['sale_price' => 10.00, 'stock_quantity' => 100]);
+    venderEm('2026-09-02 10:00', $user, $customer, $product, 3);
+
+    $this->travelTo('2026-09-15 10:00');
+
+    \Livewire\Livewire::test(\App\Livewire\Faturamento::class)
+        ->assertSee('Nenhuma venda neste período.')
+        ->set('periodo', 'mes')
+        ->assertSee('Este mês — de 01/09/2026 até 15/09/2026')
+        ->assertSee('R$ 30,00')
+        ->call('aplicarPeriodo', '2026-09-03', '2026-09-10')
+        ->assertSee('De 03/09/2026 até 10/09/2026')
+        ->assertSee('Nenhuma venda neste período.')
+        ->call('limparPeriodo')
+        ->assertSee('Hoje — 15/09/2026');
+});
