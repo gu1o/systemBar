@@ -14,6 +14,7 @@ test('profile page is displayed', function () {
 
 test('profile information can be updated', function () {
     $user = User::factory()->create();
+    $emailOriginal = $user->email;
 
     $response = $this
         ->actingAs($user)
@@ -29,7 +30,8 @@ test('profile information can be updated', function () {
     $user->refresh();
 
     $this->assertSame('Test User', $user->name);
-    $this->assertSame('test@example.com', $user->email);
+    // E-mail é só leitura: mesmo enviado, não muda.
+    $this->assertSame($emailOriginal, $user->email);
 });
 
 test('user can delete their account', function () {

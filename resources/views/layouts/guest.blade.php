@@ -20,6 +20,8 @@
         @livewireScriptConfig
     </head>
     <body class="font-sans text-gray-900 antialiased">
+        <x-toasts />
+
         <div class="min-h-screen flex flex-col justify-center items-center px-6 sm:pt-0 bg-brand-900">
             <div class="mb-8">
                 <a href="/" class="text-white font-bold text-4xl tracking-widest">

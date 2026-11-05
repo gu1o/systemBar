@@ -21,6 +21,8 @@
         @livewireScriptConfig
     </head>
     <body class="font-sans antialiased text-ink">
+        <x-toasts />
+
         <a href="#conteudo"
            class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-lg focus:bg-white focus:px-5 focus:py-3 focus:text-lg focus:font-bold focus:text-brand-700">
             Pular para o conteúdo
@@ -40,19 +42,6 @@
 
             <!-- Page Content -->
             <main id="conteudo">
-                {{-- Resultado da última ação, em um lugar só: toda tela ganha o aviso,
-                     inclusive as de erro, que antes não tinham canal nenhum (§A7). --}}
-                @if (session('success') || session('error'))
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-                        @if (session('success'))
-                            <x-alert type="success">{{ session('success') }}</x-alert>
-                        @endif
-
-                        @if (session('error'))
-                            <x-alert type="error" class="mt-4">{{ session('error') }}</x-alert>
-                        @endif
-                    </div>
-                @endif
 
                 {{ $slot }}
             </main>

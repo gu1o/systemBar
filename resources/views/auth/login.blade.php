@@ -5,7 +5,6 @@
     </div>
 
     <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
 
     <form class="flex flex-col items-start gap-6 self-stretch" method="POST" action="{{ route('login') }}">
         @csrf

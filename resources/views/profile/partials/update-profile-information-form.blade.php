@@ -5,7 +5,7 @@
         </h2>
 
         <p class="mt-1 text-base text-gray-700">
-            {{ __("Atualize as informações do seu perfil e endereço de e-mail.") }}
+            {{ __("Atualize as informações do seu perfil.") }}
         </p>
     </header>
 
@@ -21,16 +21,13 @@
 
         <div>
             <x-input-label for="email" :value="__('E-mail')" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+            {{-- Só leitura: o e-mail identifica a conta e não é alterado por aqui. --}}
+            <x-text-input id="email" type="email" class="mt-1 block w-full cursor-not-allowed bg-gray-100 text-gray-600" :value="$user->email" disabled aria-describedby="email-ajuda" />
+            <p id="email-ajuda" class="mt-1 text-base text-gray-600">{{ __('O e-mail não pode ser alterado.') }}</p>
         </div>
 
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Salvar') }}</x-primary-button>
-
-            @if (session('status') === 'profile-updated')
-                <p class="text-lg font-bold text-green-800">{{ __('Alterações salvas.') }}</p>
-            @endif
         </div>
     </form>
 </section>

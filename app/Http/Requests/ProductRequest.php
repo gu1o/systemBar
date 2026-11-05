@@ -20,6 +20,9 @@ class ProductRequest extends FormRequest
         $this->merge([
             'sale_price' => $this->normalizarDinheiro($this->input('sale_price')) ?? '',
             'cost_price' => $this->normalizarDinheiro($this->input('cost_price')),
+            // Campo opcional, mas a coluna é NOT NULL: em branco chegava como null e o
+            // INSERT estourava. Vazio = o mesmo 5 que o formulário sugere (default da coluna).
+            'stock_alert' => $this->filled('stock_alert') ? $this->input('stock_alert') : 5,
         ]);
     }
 

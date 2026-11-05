@@ -34,10 +34,6 @@
 
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Salvar') }}</x-primary-button>
-
-            @if (session('status') === 'password-updated')
-                <p class="text-lg font-bold text-green-800">{{ __('Alterações salvas.') }}</p>
-            @endif
         </div>
     </form>
 </section>
