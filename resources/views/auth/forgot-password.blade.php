@@ -23,11 +23,8 @@
             </x-primary-button>
             
             <a href="{{ route('login') }}" title="Voltar para o Login"
-                class="flex items-center justify-center gap-2 self-stretch btn btn-soft group">
-                <span class="text-center text-white text-md">
-                    Voltar para o Login
-                </span>
-
+                class="inline-flex min-h-11 items-center justify-center self-stretch rounded-lg border-2 border-brand-700 px-4 py-2 text-base font-bold text-brand-700 transition-colors hover:bg-brand-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700">
+                Voltar para o Login
             </a>
         </div>
     </form>

@@ -133,18 +133,42 @@
                             <div class="flex flex-col items-start gap-2 md:flex-row md:flex-wrap md:items-center md:gap-3">
                                 <x-status-badge cor="amarelo">Pendente</x-status-badge>
 
-                                <form action="{{ route('sales.updateStatus', $sale) }}" method="POST">
-                                    @csrf
-                                    @method('PATCH')
-                                    <input type="hidden" name="status" value="paid">
-
-                                    <button type="submit" data-rotulo-enviando="Registrando pagamento..."
-                                        class="inline-flex min-h-12 cursor-pointer items-center whitespace-nowrap rounded-lg border-2 border-green-700 px-4 text-base font-bold text-green-900 transition-colors hover:bg-green-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-700"
-                                        onclick="return confirm('Marcar como paga a compra de ' + @js($sale->customer?->name ?? 'cliente removido') + ' no valor de R$ {{ number_format($sale->total_amount, 2, ',', '.') }}?')">
-                                        Marcar como pago
-                                    </button>
-                                </form>
+                                <button type="button" x-data=""
+                                    x-on:click="$dispatch('open-modal', 'pagar-venda-{{ $sale->id }}')"
+                                    class="inline-flex min-h-12 cursor-pointer items-center whitespace-nowrap rounded-lg border-2 border-green-700 px-4 text-base font-bold text-green-900 transition-colors hover:bg-green-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-700">
+                                    Marcar como pago
+                                </button>
                             </div>
+
+                            {{-- Mesmo padrão do x-row-actions: x-modal no lugar do confirm() nativo (§A6). --}}
+                            <x-modal name="pagar-venda-{{ $sale->id }}" maxWidth="lg" focusable>
+                                <div class="p-6 text-left">
+                                    <h2 class="text-2xl font-bold text-gray-900">Marcar como paga?</h2>
+
+                                    <p class="mt-3 text-lg text-gray-700">
+                                        Compra de <strong>{{ $sale->customer?->name ?? 'cliente removido' }}</strong>
+                                        no valor de <strong>R$ {{ number_format($sale->total_amount, 2, ',', '.') }}</strong>.
+                                    </p>
+
+                                    <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                                        <button type="button" x-on:click="$dispatch('close')"
+                                            class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-lg border-2 border-gray-400 px-6 py-3 text-lg font-bold text-gray-700 transition-colors hover:bg-gray-100">
+                                            Voltar
+                                        </button>
+
+                                        <form action="{{ route('sales.updateStatus', $sale) }}" method="POST">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="status" value="paid">
+
+                                            <button type="submit" data-rotulo-enviando="Registrando pagamento..."
+                                                class="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-lg bg-green-700 px-6 py-3 text-lg font-bold text-white transition-colors hover:bg-green-800">
+                                                Confirmar pagamento
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </x-modal>
                         @endif
                     </td>
                     <td data-rotulo="Ações" class="px-6 py-5">
